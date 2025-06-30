@@ -314,6 +314,15 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Powered by Bolt Tag */}
+            <div className="flex items-center space-x-2">
+              <img 
+                src="/logotext_poweredby_360w (1).png" 
+                alt="Powered by Bolt" 
+                className="h-4 w-auto object-contain opacity-60"
+              />
+            </div>
+
             {/* Sort Dropdown */}
             <div className="relative">
               <select
