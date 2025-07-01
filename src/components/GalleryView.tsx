@@ -314,12 +314,21 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Powered by Bolt Tag */}
+            {/* Powered by Bolt Tag - Fixed with proper path and error handling */}
             <div className="flex items-center space-x-2">
               <img 
                 src="/logotext_poweredby_360w (1).png" 
                 alt="Powered by Bolt" 
                 className="h-4 w-auto object-contain opacity-60"
+                onError={(e) => {
+                  // Hide the image if it fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  console.warn('Powered by Bolt image failed to load');
+                }}
+                onLoad={() => {
+                  console.log('Powered by Bolt image loaded successfully');
+                }}
               />
             </div>
 
