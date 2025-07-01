@@ -311,11 +311,13 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 );
               })}
             </div>
+          </div>
 
-            {/* Powered by Bolt Tag - Moved here */}
+          <div className="flex items-center space-x-4">
+            {/* Powered by Bolt Tag - Positioned beside the dropdown */}
             <div className="flex items-center space-x-2">
               <img 
-                src="/logotext_poweredby_360w (1).png" 
+                src="/logotext_poweredby_360w (1) copy.png" 
                 alt="Powered by Bolt" 
                 className="h-4 w-auto object-contain opacity-60"
                 onError={(e) => {
@@ -329,9 +331,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 }}
               />
             </div>
-          </div>
 
-          <div className="flex items-center space-x-4">
             {/* Sort Dropdown */}
             <div className="relative">
               <select
