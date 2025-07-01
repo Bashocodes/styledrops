@@ -314,7 +314,21 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Powered by Bolt Tag - Positioned beside the dropdown */}
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <select
+                value={sortOrder}
+                onChange={(e) => handleSortChange(e.target.value as 'new' | 'top' | 'hot')}
+                className="appearance-none bg-black/60 backdrop-blur-sm hover:bg-black/80 text-[#E0E0E0] rounded-lg px-4 py-2 pr-8 font-medium transition-colors text-sm cursor-pointer border border-white/10 outline-none"
+              >
+                <option value="new" className="bg-black text-[#E0E0E0]">New</option>
+                <option value="top" className="bg-black text-[#E0E0E0]">Top</option>
+                <option value="hot" className="bg-black text-[#E0E0E0]">Hot</option>
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E0E0E0] pointer-events-none" size={16} />
+            </div>
+
+            {/* Powered by Bolt Tag - Moved to the right of the dropdown */}
             <div className="flex items-center space-x-2">
               <img 
                 src="/logotext_poweredby_360w (1) copy.png" 
@@ -330,20 +344,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   console.log('Powered by Bolt image loaded successfully');
                 }}
               />
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <select
-                value={sortOrder}
-                onChange={(e) => handleSortChange(e.target.value as 'new' | 'top' | 'hot')}
-                className="appearance-none bg-black/60 backdrop-blur-sm hover:bg-black/80 text-[#E0E0E0] rounded-lg px-4 py-2 pr-8 font-medium transition-colors text-sm cursor-pointer border border-white/10 outline-none"
-              >
-                <option value="new" className="bg-black text-[#E0E0E0]">New</option>
-                <option value="top" className="bg-black text-[#E0E0E0]">Top</option>
-                <option value="hot" className="bg-black text-[#E0E0E0]">Hot</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E0E0E0] pointer-events-none" size={16} />
             </div>
           </div>
         </div>
