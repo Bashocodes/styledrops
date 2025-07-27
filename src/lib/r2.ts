@@ -203,7 +203,7 @@ export const compressImage = (file: File, maxSizeMB: number = 2): Promise<File> 
                   resolve(finalFile);
                 },
                 file.type,
-                0.6 // Lower quality
+                0.6 // Lower quality for further compression
               );
             }
           },

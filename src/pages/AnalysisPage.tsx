@@ -429,6 +429,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             src={displayMediaUrl}
             alt={currentAnalysis.title}
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+            loading="lazy"
             onError={(e) => {
               console.error('Failed to load image from R2:', displayMediaUrl);
               const target = e.target as HTMLImageElement;
@@ -460,6 +461,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             src={displayMediaUrl}
             controls
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+            loading="lazy"
             style={{ maxHeight: '80vh' }}
             poster={thumbnailFile ? URL.createObjectURL(thumbnailFile) : undefined}
             onError={(e) => {
@@ -476,6 +478,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             <audio
               src={displayMediaUrl}
               controls
+              loading="lazy"
               className="w-full max-w-md"
               onError={(e) => {
                 console.error('Failed to load audio from R2:', displayMediaUrl);

@@ -4,7 +4,9 @@ import {
   LogIn, 
   LogOut, 
   User, 
-  Loader2,
+  Loader2, 
+  Menu, // Import Menu icon
+  X, // Import X icon
   AlertCircle,
   Settings
 } from 'lucide-react';
@@ -22,6 +24,7 @@ interface GlassmorphicHeaderProps {
 export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
   onDecodeClick,
   onLogoClick,
+  // ... existing props
   onProfileClick,
   signInError,
   onDismissSignInError
@@ -29,6 +32,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // New state for mobile menu
   const handleGoogleSignIn = async () => {
     try {
       addBreadcrumb('User clicked Google sign in button', 'ui');
@@ -114,25 +118,39 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
 
       {/* Glassmorphic Header */}
       <header className={`fixed left-1 right-1 z-40 ${signInError ? 'top-16' : 'top-1'}`}>
-        <div className="bg-black/50 backdrop-blur-xl border border-black/50 rounded-full shadow-2xl h-14 flex items-center justify-between px-4">
+        <div className="bg-black/50 backdrop-blur-xl border border-black/50 rounded-full shadow-2xl h-14 flex items-center justify-between px-4 lg:px-6">
           {/* Left Section - Logo */}
           <div className="flex-1 flex items-center justify-start">
             <button
               onClick={handleLogoClick}
               className="hover:opacity-80 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg"
               aria-label="StyleDrop home"
+              tabIndex={0}
             >
               <img 
                 src="/Glowing Infinity in Frosted Glass copy copy.png" 
                 alt="StyleDrop Logo" 
-                className="h-8 w-auto object-contain"
+                className="h-7 w-auto object-contain"
                 style={{ filter: 'brightness(1.2) contrast(1.1)' }}
               />
             </button>
           </div>
 
-          {/* Center Section - Decode Button */}
-          <div className="flex-1 flex items-center justify-center">
+          {/* Hamburger Menu Button (visible on small screens) */}
+          <div className="lg:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="p-2 rounded-full text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              aria-label="Open mobile menu"
+              tabIndex={0}
+            >
+              <Menu size={24} />
+            </button>
+          </div>
+
+          {/* Desktop Navigation (hidden on small screens) */}
+          <div className="hidden lg:flex flex-1 items-center justify-center">
+            {/* Center Section - Decode Button */}
             <button
               onClick={() => {
                 onDecodeClick();
@@ -140,14 +158,15 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
               }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               aria-label="Decode media - analyze your images, videos, or audio"
+              tabIndex={0}
             >
               <Code size={16} />
               <span className="hidden sm:block">Decode Media</span>
             </button>
           </div>
 
-          {/* Right Section - User Authentication */}
-          <div className="flex-1 flex items-center justify-end">
+          {/* Desktop User Authentication (hidden on small screens) */}
+          <div className="hidden lg:flex flex-1 items-center justify-end">
             <div className="flex items-center gap-4">
               {/* Authentication Section */}
               {loading ? (
@@ -168,6 +187,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                     aria-label={`User menu for ${getDisplayName()}`}
                     aria-expanded={showProfileMenu}
                     aria-haspopup="true"
+                    tabIndex={0}
                   >
                     {user.user_metadata?.avatar_url ? (
                       <img 
@@ -207,6 +227,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                         onClick={handleAccountClick}
                         className="w-full flex items-center gap-3 px-4 py-2 text-improved-contrast hover:text-white hover:bg-white/10 transition-colors text-sm focus:outline-none focus:bg-white/10"
                         role="menuitem"
+                        tabIndex={0}
                       >
                         <Settings size={16} />
                         <span>Account</span>
@@ -217,6 +238,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                         onClick={handleSignOut}
                         className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm focus:outline-none focus:bg-red-500/10"
                         role="menuitem"
+                        tabIndex={0}
                       >
                         <LogOut size={16} />
                         <span>Sign Out</span>
@@ -230,12 +252,108 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                   onClick={handleGoogleSignIn}
                   className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide bg-black/50 hover:bg-black/60 text-[#B8A082] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                   aria-label="Sign in with Google to access all features"
+                  tabIndex={0}
                 >
                   <LogIn size={16} />
                   <span className="hidden sm:block">Sign in with Google</span>
                 </button>
               )}
             </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex flex-col items-center justify-center p-4">
+          <div className="absolute top-4 right-4">
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="p-2 rounded-full text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              aria-label="Close mobile menu"
+              tabIndex={0}
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <nav className="flex flex-col items-center space-y-6">
+            {/* Decode Button for Mobile */}
+            <button
+              onClick={() => {
+                onDecodeClick();
+                setIsMobileMenuOpen(false); // Close menu after click
+                addBreadcrumb('Decode button clicked (mobile)', 'ui');
+              }}
+              className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              aria-label="Decode media - analyze your images, videos, or audio"
+              tabIndex={0}
+            >
+              <Code size={28} />
+              <span>Decode Media</span>
+            </button>
+
+            {/* User Authentication for Mobile */}
+            {loading ? (
+              <div className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-white/50">
+                <Loader2 className="animate-spin w-6 h-6" />
+                <span>Loading...</span>
+              </div>
+            ) : user ? (
+              <div className="flex flex-col items-center space-y-4">
+                <button
+                  onClick={() => {
+                    handleAccountClick();
+                    setIsMobileMenuOpen(false); // Close menu after click
+                  }}
+                  className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#7C9A92] hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  aria-label={`Account settings for ${getDisplayName()}`}
+                  tabIndex={0}
+                >
+                  {user.user_metadata?.avatar_url ? (
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full"
+                    />
+                  ) : (
+                    <User size={32} />
+                  )}
+                  <span>{getDisplayName()}</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleSignOut();
+                    setIsMobileMenuOpen(false); // Close menu after click
+                  }}
+                  className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  aria-label="Sign out"
+                  tabIndex={0}
+                >
+                  <LogOut size={28} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => {
+                  handleGoogleSignIn();
+                  setIsMobileMenuOpen(false); // Close menu after click
+                }}
+                className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#B8A082] hover:text-[#A69072] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                aria-label="Sign in with Google to access all features"
+                tabIndex={0}
+              >
+                <LogIn size={28} />
+                <span>Sign in with Google</span>
+              </button>
+            )}
+          </nav>
+        </div>
+      )}
+    </>
+  );
+}
           </div>
         </div>
       </header>
