@@ -35,6 +35,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
     return () => clearTimeout(timeoutId);
   }, [searchInputValue]);
+  
   const loadPosts = useCallback(async (reset: boolean = false) => {
     try {
       if (reset) {
@@ -141,6 +142,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       artistId
     });
   };
+  
   const handlePostClick = (post: Post) => {
     addBreadcrumb('Gallery post clicked', 'ui', { 
       postId: post.id,
@@ -192,7 +194,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               alt={post.title}
               className="w-full h-auto object-cover shadow-double-border"
               loading="lazy"
-              loading="lazy"
               onError={(e) => {
                 console.warn('Image failed to load, showing fallback:', {
                   postId: post.id,
@@ -228,7 +229,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             <video
               src={validatedUrl}
               className="w-full h-auto object-cover shadow-double-border"
-              loading="lazy"
               muted
               preload="none"
               poster={post.thumbnail_url} // NEW: Use thumbnail as poster if available
@@ -506,6 +506,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             </>
           )}
         </section>
+          </div>
       </div>
     </main>
   );
