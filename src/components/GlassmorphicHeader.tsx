@@ -353,10 +353,4 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
       )}
     </>
   );
-}
-          </div>
-        </div>
-      </header>
-    </>
-  );
 };
