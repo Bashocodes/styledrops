@@ -73,6 +73,20 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
 
   return (
     <>
+      {/* Skip to main content link for accessibility */}
+      <a 
+        href="#main-content" 
+        className="skip-to-main focus:outline-none"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            document.getElementById('main-content')?.focus();
+          }
+        }}
+      >
+        Skip to main content
+      </a>
+
       {/* Error Banner */}
       {signInError && (
         <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/10 border-b border-red-500/20 backdrop-blur-sm">
@@ -105,7 +119,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
           <div className="flex-1 flex items-center justify-start">
             <button
               onClick={handleLogoClick}
-              className="hover:opacity-80 transition-all duration-300 transform hover:scale-105"
+              className="hover:opacity-80 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg"
+              aria-label="StyleDrop home"
             >
               <img 
                 src="/Glowing Infinity in Frosted Glass copy copy.png" 
@@ -123,7 +138,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                 onDecodeClick();
                 addBreadcrumb('Decode button clicked', 'ui');
               }}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E]"
+              className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              aria-label="Decode media - analyze your images, videos, or audio"
             >
               <Code size={16} />
               <span className="hidden sm:block">Decode Media</span>
@@ -148,7 +164,10 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                   onMouseLeave={() => setShowProfileMenu(false)}
                 >
                   <button className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/60 transition-colors flex items-center justify-center text-[#7C9A92]">
-                    {user.user_metadata?.avatar_url ? (
+                    className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/60 transition-colors flex items-center justify-center text-[#7C9A92] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                    aria-label={`User menu for ${getDisplayName()}`}
+                    aria-expanded={showProfileMenu}
+                    aria-haspopup="true"
                       <img 
                         src={user.user_metadata.avatar_url}
                         alt="Profile" 
@@ -161,13 +180,17 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
 
                   {/* Profile Dropdown Menu */}
                   {showProfileMenu && (
-                    <div className="absolute top-12 right-0 bg-black/80 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl py-2 min-w-[160px] z-50">
+                    <div 
+                      className="absolute top-12 right-0 bg-black/80 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl py-2 min-w-[160px] z-50"
+                      role="menu"
+                      aria-label="User menu"
+                    >
                       {/* User Info */}
                       <div className="px-4 py-2 border-b border-white/10">
-                        <p className="text-white text-sm font-medium">
+                        <p className="text-improved-contrast text-sm font-medium">
                           {getDisplayName()}
                         </p>
-                        <p className="text-white/60 text-xs">
+                        <p className="text-improved-muted text-xs">
                           {user.email}
                         </p>
                         {user.username && (
@@ -180,7 +203,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                       {/* Account Settings */}
                       <button
                         onClick={handleAccountClick}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-white/80 hover:text-white hover:bg-white/10 transition-colors text-sm"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-improved-contrast hover:text-white hover:bg-white/10 transition-colors text-sm focus:outline-none focus:bg-white/10"
+                        role="menuitem"
                       >
                         <Settings size={16} />
                         <span>Account</span>
@@ -189,7 +213,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                       {/* Sign Out */}
                       <button
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm"
+                        className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm focus:outline-none focus:bg-red-500/10"
+                        role="menuitem"
                       >
                         <LogOut size={16} />
                         <span>Sign Out</span>
@@ -201,7 +226,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                 /* Signed Out State */
                 <button
                   onClick={handleGoogleSignIn}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide bg-black/50 hover:bg-black/60 text-[#B8A082]"
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide bg-black/50 hover:bg-black/60 text-[#B8A082] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  aria-label="Sign in with Google to access all features"
                 >
                   <LogIn size={16} />
                   <span className="hidden sm:block">Sign in with Google</span>

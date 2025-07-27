@@ -599,24 +599,25 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   });
 
   return (
-    <div className="min-h-screen pt-16 h-screen overflow-hidden bg-charcoal-matte font-inter">
+    <main className="min-h-screen pt-16 h-screen overflow-hidden bg-charcoal-matte font-inter">
       {/* Mobile Layout: Flex Column, Desktop Layout: Flex Row */}
       <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
         {/* Media Display Section */}
-        <div className="w-full lg:w-2/3 h-auto lg:h-full p-4 flex items-center justify-center relative">
+        <section className="w-full lg:w-2/3 h-auto lg:h-full p-4 flex items-center justify-center relative" aria-label="Media display">
           {renderMedia()}
-        </div>
+        </section>
 
         {/* Control Deck Section */}
-        <div className="w-full lg:w-1/3 flex flex-col max-h-[60vh] lg:max-h-full">
+        <aside className="w-full lg:w-1/3 flex flex-col max-h-[60vh] lg:max-h-full" aria-label="Analysis controls and information">
           {/* Scrollable Content Area */}
           <div className="flex-1 overflow-y-auto">
             <div className="bg-black/50 backdrop-blur-md shadow-inner relative p-4 rounded-2xl">
               {/* Header within Control Deck */}
-              <div className="flex items-center justify-between mb-4">
+              <header className="flex items-center justify-between mb-4">
                 <button
                   onClick={onBack}
-                  className="p-1 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                  className="p-1 rounded-xl bg-white/10 hover:bg-white/20 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  aria-label="Go back to gallery"
                 >
                   <ArrowLeft className="w-5 h-5 text-gray-400" />
                 </button>
@@ -627,7 +628,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                     <button
                       onClick={handlePost}
                       disabled={postButtonContent.disabled}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all text-xs ${postButtonStyle} ${
+                      className={`flex items-center gap-1 px-2 py-1 rounded-lg font-medium transition-all text-xs focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 ${postButtonStyle} ${
                         postButtonContent.disabled ? 'cursor-not-allowed' : 'hover:opacity-80'
                       }`}
                       title={
@@ -635,6 +636,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                           ? 'Analysis not saved to database - cannot post' 
                           : ''
                       }
+                      aria-label={`Post to gallery: ${postButtonContent.text}`}
                     >
                       {postStatus === 'success' ? (
                         <Check className="w-3 h-3" />
@@ -653,14 +655,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   {canDeletePost && (
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
-                      className="p-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300"
+                      className="p-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                       title="Delete this post"
+                      aria-label="Delete this post"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
-              </div>
+              </header>
 
               {/* Database Status Warning */}
               {!hasValidDatabaseId && (
@@ -673,7 +676,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                       </p>
                       <button
                         onClick={handleRetryAnalysis}
-                        className="flex items-center space-x-1 text-orange-300 hover:text-orange-200 text-xs underline"
+                        className="flex items-center space-x-1 text-orange-300 hover:text-orange-200 text-xs underline focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                       >
                         <RefreshCw className="w-3 h-3" />
                         <span>Try analyzing again</span>
@@ -684,14 +687,23 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               )}
 
               {/* Analysis Title */}
-              <h1 className="text-2xl lg:text-3xl font-light text-[#7C9A92] mb-2">
+              <h1 className="text-2xl lg:text-3xl font-light text-[#8FB3A8] mb-2">
                 {currentAnalysis.title}
               </h1>
               
               {/* Analysis Style - Clickable */}
               <p
                 onClick={handleStyleClick}
-                className="text-[#7C9A92] font-mono text-sm leading-relaxed cursor-pointer hover:text-[#8FAAA3] mb-2 hover:underline transition-colors"
+                className="text-[#8FB3A8] font-mono text-sm leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-2 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                tabIndex={0}
+                role="button"
+                aria-label={`Explore ${currentAnalysis.style} style gallery`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleStyleClick();
+                  }
+                }}
               >
                 {currentAnalysis.style}
               </p>
@@ -700,8 +712,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {artistUsername && artistId && (
                 <button
                   onClick={handleViewArtistProfile}
-                  className="flex items-center space-x-2 font-mono text-sm cursor-pointer hover:underline transition-colors mb-4"
+                  className="flex items-center space-x-2 font-mono text-sm cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                   style={{ color: '#5F6BBB' }}
+                  aria-label={`View ${artistUsername}'s profile`}
                 >
                   <span>{artistUsername}</span>
                 </button>
@@ -711,15 +724,16 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               <textarea
                 value={editablePrompt}
                 onChange={(e) => setEditablePrompt(e.target.value)}
-                className="w-full bg-white/5 rounded-xl p-3 text-[#E0E0E0] text-sm font-mono leading-relaxed resize-none border-none outline-none mb-4 focus:bg-white/10 transition-colors"
+                className="w-full bg-white/5 rounded-xl p-3 text-improved-contrast text-sm font-mono leading-relaxed resize-none border-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/10 transition-colors mb-4"
                 rows={3}
                 placeholder="Edit your prompt here..."
+                aria-label="Editable prompt text"
               />
 
               {/* NEW: Style Codes Input - Conditional visibility */}
               {shouldShowStyleCodes && (
                 <div className="mb-4">
-                  <label htmlFor="style-codes" className="block text-[#B8A082] text-xs font-medium mb-2">
+                  <label htmlFor="style-codes" className="block text-[#D4B896] text-xs font-medium mb-2">
                     Style Codes
                   </label>
                   <input
@@ -727,7 +741,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                     type="text"
                     value={styleCodes}
                     onChange={(e) => setStyleCodes(e.target.value)}
-                    className="w-full bg-black/30 rounded-lg p-3 text-[#E0E0E0] text-sm font-mono leading-relaxed border border-white/10 outline-none focus:border-[#B8A082]/50 focus:bg-black/40 transition-all duration-300 placeholder-[#E0E0E0]/60"
+                    className="w-full bg-black/30 rounded-lg p-3 text-improved-contrast text-sm font-mono leading-relaxed border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-black/40 transition-all duration-300 placeholder-gray-400"
                     placeholder="--sref --profile --moodboard"
                   />
                 </div>
@@ -736,7 +750,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {/* NEW: Parsed Style Codes - Only visible when codes are entered */}
               {styleCodes.trim().length > 0 && (
                 <div className="mb-4">
-                  <label className="block text-[#B8A082] text-xs font-medium mb-2">
+                  <label className="block text-[#D4B896] text-xs font-medium mb-2">
                     Parsed Style Codes
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -744,16 +758,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                       <button
                         key={index}
                         onClick={() => handleStyleCodeClick(code, index)}
-                        className="group relative px-3 py-2 bg-gradient-to-r from-[#B8A082]/20 to-[#A69072]/20 border border-[#B8A082]/30 rounded-lg hover:from-[#B8A082]/30 hover:to-[#A69072]/30 hover:border-[#B8A082]/50 transition-all duration-300 cursor-pointer"
+                        className="group relative px-3 py-2 bg-gradient-to-r from-[#D4B896]/20 to-[#C4A886]/20 border border-[#D4B896]/30 rounded-lg hover:from-[#D4B896]/30 hover:to-[#C4A886]/30 hover:border-[#D4B896]/50 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                        aria-label={`Copy style code: ${code}`}
+                        title={copiedCodeIndex === index ? 'Copied!' : 'Click to copy'}
                       >
                         <div className="flex items-center space-x-2">
-                          <span className="text-[#B8A082] text-xs font-mono">
+                          <span className="text-[#D4B896] text-xs font-mono">
                             {code}
                           </span>
                           {copiedCodeIndex === index ? (
                             <Check className="w-3 h-3 text-green-400" />
                           ) : (
-                            <Copy className="w-3 h-3 text-[#B8A082]/60 group-hover:text-[#B8A082] transition-colors" />
+                            <Copy className="w-3 h-3 text-[#D4B896]/60 group-hover:text-[#D4B896] transition-colors" />
                           )}
                         </div>
                         
@@ -769,12 +785,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
               {/* Key Tokens - Smaller spacing on mobile */}
               <div className="mb-4">
+                <h2 className="sr-only">Key style tokens</h2>
                 <div className="flex flex-wrap gap-1">
                   {currentAnalysis.keyTokens.map((token, index) => (
                     <button
                       key={index}
                       onClick={() => handleKeyTokenClick(token)}
-                      className="px-2 py-1 bg-black/30 text-[#94AFA7] text-xs font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40"
+                      className="px-2 py-1 bg-black/30 text-[#A3C4B8] text-xs font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                      aria-label={`Add token: ${token}`}
+                      title={`Click to add "${token}" to prompt`}
                     >
                       {token}
                     </button>
@@ -784,8 +803,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
               {/* Module Sections - Smaller spacing on mobile */}
               <div className="space-y-4">
+                <h2 className="sr-only">Creative modules</h2>
                 {/* Top Modules */}
-                <div className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm">
+                <section className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm" aria-label="Primary creative modules">
                   {renderModuleTabs(TOP_MODULES, activeTopModule, setActiveTopModule)}
                   <div className="p-3 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
@@ -794,10 +814,10 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                       onTextClick={handleModulePromptClick}
                     />
                   </div>
-                </div>
+                </section>
 
                 {/* Bottom Modules */}
-                <div className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm">
+                <section className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm" aria-label="Secondary creative modules">
                   {renderModuleTabs(BOTTOM_MODULES, activeBottomModule, setActiveBottomModule)}
                   <div className="p-3 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
@@ -806,23 +826,23 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                       onTextClick={handleModulePromptClick}
                     />
                   </div>
-                </div>
+                </section>
               </div>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
 
       {/* Delete Confirmation Modal - NEW */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+          <div className="bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6" role="document">
             <div className="text-center">
               <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Trash2 className="w-8 h-8 text-red-400" />
               </div>
               
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 id="delete-modal-title" className="text-xl font-semibold text-white mb-2">
                 Delete Post
               </h3>
               
@@ -834,7 +854,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 text-gray-300 hover:text-white transition-all duration-300 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 text-gray-300 hover:text-white transition-all duration-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   Cancel
                 </button>
@@ -842,7 +862,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 <button
                   onClick={handleDeletePost}
                   disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   {isDeleting ? (
                     <>
@@ -861,6 +881,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };

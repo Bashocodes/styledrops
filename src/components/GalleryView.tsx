@@ -284,13 +284,14 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   };
 
   return (
-    <div className="pt-20 min-h-screen bg-[#1a1a1a]">
+    <main id="main-content" className="pt-20 min-h-screen bg-[#1a1a1a]" tabIndex={-1}>
       <div className="overflow-y-auto">
         {/* Top Section */}
-        <div className="px-4 py-4 flex items-center justify-between border-b border-white/10">
+        <header className="px-4 py-4 flex items-center justify-between border-b border-white/10">
+          <h1 className="sr-only">{getGalleryTitle()}</h1>
           <div className="flex items-center space-x-4">
             {/* Media Type Filter Tabs */}
-            <div className="flex items-center bg-black/60 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+            <div className="flex items-center bg-black/60 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden" role="tablist" aria-label="Media type filter">
               {(['image', 'video', 'audio'] as const).map((mediaType) => {
                 const isActive = selectedMediaType === mediaType;
                 const Icon = getMediaTypeIcon(mediaType);
@@ -299,11 +300,14 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   <button
                     key={mediaType}
                     onClick={() => handleMediaTypeChange(mediaType)}
-                    className={`flex items-center space-x-2 px-3 py-2 text-xs font-medium transition-all duration-300 ${
+                    className={`flex items-center space-x-2 px-3 py-2 text-xs font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset ${
                       isActive
-                        ? 'text-[#7C9A92] bg-black/80'
-                        : 'text-[#E0E0E0] hover:bg-black/80'
+                        ? 'text-[#8FB3A8] bg-black/80'
+                        : 'text-improved-contrast hover:bg-black/80'
                     }`}
+                    role="tab"
+                    aria-selected={isActive}
+                    aria-label={`Filter by ${mediaType} content`}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="hidden sm:block capitalize">{mediaType}</span>
@@ -319,13 +323,14 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               <select
                 value={sortOrder}
                 onChange={(e) => handleSortChange(e.target.value as 'new' | 'top' | 'hot')}
-                className="appearance-none bg-black/60 backdrop-blur-sm hover:bg-black/80 text-[#E0E0E0] rounded-lg px-4 py-2 pr-8 font-medium transition-colors text-sm cursor-pointer border border-white/10 outline-none"
+                className="appearance-none bg-black/60 backdrop-blur-sm hover:bg-black/80 text-improved-contrast rounded-lg px-4 py-2 pr-8 font-medium transition-colors text-sm cursor-pointer border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400"
+                aria-label="Sort gallery content"
               >
                 <option value="new" className="bg-black text-[#E0E0E0]">New</option>
                 <option value="top" className="bg-black text-[#E0E0E0]">Top</option>
                 <option value="hot" className="bg-black text-[#E0E0E0]">Hot</option>
               </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#E0E0E0] pointer-events-none" size={16} />
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-improved-contrast pointer-events-none" size={16} />
             </div>
 
             {/* Powered by Bolt Tag - Moved to the right of the dropdown */}
@@ -346,15 +351,15 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               />
             </div>
           </div>
-        </div>
+        </header>
 
         {/* Content */}
-        <div className="p-4">
+        <section className="p-4" aria-label="Gallery content">
           {loading && posts.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-[#B8A082] animate-spin mx-auto mb-4" />
-                <p className="text-white/70 text-lg">
+                <p className="text-improved-contrast text-lg">
                   {artistUsername ? `Loading ${artistUsername}'s creations...` : 'Loading styles...'}
                 </p>
               </div>
@@ -366,10 +371,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   <AlertTriangle className="w-8 h-8 text-red-400" />
                 </div>
                 <p className="text-red-400 text-lg mb-2">Failed to load creations</p>
-                <p className="text-white/50 text-sm mb-4">{error}</p>
+                <p className="text-improved-muted text-sm mb-4">{error}</p>
                 <button
                   onClick={() => loadPosts(true)}
-                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl font-medium transition-colors"
+                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   Try Again
                 </button>
@@ -381,11 +386,11 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 <div className="w-16 h-16 mx-auto mb-4 bg-white/10 rounded-full flex items-center justify-center">
                   <Type className="w-8 h-8 text-white/30" />
                 </div>
-                <p className="text-white/50 text-lg mb-2">{getEmptyStateMessage().title}</p>
-                <p className="text-white/30 text-sm mb-4">{getEmptyStateMessage().subtitle}</p>
+                <p className="text-improved-muted text-lg mb-2">{getEmptyStateMessage().title}</p>
+                <p className="text-gray-400 text-sm mb-4">{getEmptyStateMessage().subtitle}</p>
                 <button
                   onClick={onBack}
-                  className="px-6 py-2 bg-[#B8A082] hover:bg-[#A69072] text-[#1a1a1a] rounded-xl font-medium transition-colors"
+                  className="px-6 py-2 bg-[#D4B896] hover:bg-[#C4A886] text-[#1a1a1a] rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   {getEmptyStateMessage().buttonText}
                 </button>
@@ -394,19 +399,28 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
           ) : (
             <>
               {/* Gallery Grid */}
-              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+              <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6" role="grid" aria-label="Style gallery">
                 {posts.map((post) => (
                   <div
                     key={post.id}
                     onClick={() => handlePostClick(post)}
-                    className="bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition-all group border border-white/10 hover:border-white/20 hover:scale-[1.02] transform duration-300 cursor-pointer relative break-inside-avoid"
+                    className="bg-white/5 rounded-2xl overflow-hidden hover:bg-white/10 transition-all group border border-white/10 hover:border-white/20 hover:scale-[1.02] transform duration-300 cursor-pointer relative break-inside-avoid focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                    role="gridcell"
+                    tabIndex={0}
+                    aria-label={`View ${post.title} in ${post.style} style`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handlePostClick(post);
+                      }
+                    }}
                   >
                     {/* Media Preview */}
                     {renderMediaPreview(post)}
                     
                     {/* Style Name Overlay - Updated with hover effect */}
                     <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-black px-3 py-2 rounded-t-lg opacity-0 group-hover:opacity-70 translate-y-full group-hover:translate-y-0 transition-all duration-300">
-                      <p className="text-muted-teal font-mono text-xs font-medium text-center whitespace-nowrap">
+                      <p className="text-[#8FB3A8] font-mono text-xs font-medium text-center whitespace-nowrap">
                         {post.style}
                       </p>
                     </div>
@@ -429,10 +443,10 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 {loadingMore ? (
                   <div className="flex items-center space-x-3">
                     <Loader2 className="w-5 h-5 text-[#B8A082] animate-spin" />
-                    <span className="text-white/50 text-sm">Loading more...</span>
+                    <span className="text-improved-muted text-sm">Loading more...</span>
                   </div>
                 ) : !hasMore ? (
-                  <span className="text-white/30 text-sm">
+                  <span className="text-gray-400 text-sm">
                     {artistUsername 
                       ? `You've seen all of ${artistUsername}'s creations` 
                       : "You've reached the end"
@@ -442,8 +456,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               </div>
             </>
           )}
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 };

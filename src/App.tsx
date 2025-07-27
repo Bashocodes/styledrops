@@ -341,28 +341,67 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-12 pt-32">
-        {/* Welcome Section */}
+        {/* Hero Section */}
         <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-6xl font-bold text-white bg-gradient-to-r from-purple-400 via-white to-blue-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold text-white bg-gradient-to-r from-purple-400 via-white to-blue-400 bg-clip-text text-transparent mb-6">
             StyleDrop
           </h1>
-          <p className="text-gray-400 mt-4">
-            Decode and analyze your media with AI
+          <h2 className="text-xl md:text-2xl font-medium text-gray-200 mb-4">
+            Discover, Mix, and Analyze AI Art Styles
+          </h2>
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto leading-relaxed">
+            Explore a curated library of AI-generated art styles, decode visual aesthetics, and generate creative prompts for MidJourney, Stable Diffusion, and other AI art tools.
           </p>
         </div>
 
-        {/* Empty State */}
-        <div className="text-center">
+        {/* Features Overview */}
+        <section className="mb-16">
+          <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-12">
+            How StyleDrop Works
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Discover Styles</h3>
+              <p className="text-gray-400 text-sm">
+                Browse our curated gallery of AI art styles and visual aesthetics from various artistic movements and genres.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500/20 to-teal-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Decode Media</h3>
+              <p className="text-gray-400 text-sm">
+                Upload your own images, videos, or audio to analyze their style and generate detailed creative prompts.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-orange-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Create & Mix</h3>
+              <p className="text-gray-400 text-sm">
+                Get inspired with story prompts, animation ideas, music suggestions, and creative remixes for your projects.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="text-center">
           <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
             <Sparkles className="w-8 h-8 text-purple-400" />
           </div>
-          <h4 className="text-xl font-semibold text-white mb-2">
-            Welcome to StyleDrop
-          </h4>
-          <p className="text-gray-400 max-w-md mx-auto mb-6">
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Ready to Get Started?
+          </h2>
+          <p className="text-gray-300 max-w-md mx-auto mb-6">
             {user 
-              ? 'Use the decode button above to analyze your first media file.'
-              : 'Sign in with Google to start creating and analyzing your digital content.'
+              ? 'Use the decode button above to analyze your first media file, or explore the gallery to discover new styles.'
+              : 'Sign in with Google to start creating, analyzing, and saving your favorite AI art styles.'
             }
           </p>
           
@@ -377,10 +416,10 @@ function App() {
               </span>
             </button>
             <p className="text-xs text-gray-500 mt-2">
-              Click to test error tracking (for development only)
+              Development: Click to test error tracking
             </p>
           </div>
-        </div>
+        </section>
       </main>
 
       {/* Footer */}
