@@ -163,11 +163,13 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                   onMouseEnter={() => setShowProfileMenu(true)}
                   onMouseLeave={() => setShowProfileMenu(false)}
                 >
-                  <button className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/60 transition-colors flex items-center justify-center text-[#7C9A92]">
+                  <button 
                     className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/60 transition-colors flex items-center justify-center text-[#7C9A92] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                     aria-label={`User menu for ${getDisplayName()}`}
                     aria-expanded={showProfileMenu}
                     aria-haspopup="true"
+                  >
+                    {user.user_metadata?.avatar_url ? (
                       <img 
                         src={user.user_metadata.avatar_url}
                         alt="Profile" 
