@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "jest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "generate-sitemap": "node src/utils/sitemapGenerator.js",
+    "build:seo": "npm run generate-sitemap && npm run build"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.478.0",

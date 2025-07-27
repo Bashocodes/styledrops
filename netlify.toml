@@ -16,5 +16,16 @@
   to = "/index.html"
   status = 200
 
+# Ensure robots.txt and sitemap.xml are served with correct content types
+[[headers]]
+  for = "/robots.txt"
+  [headers.values]
+    Content-Type = "text/plain"
+
+[[headers]]
+  for = "/sitemap.xml"
+  [headers.values]
+    Content-Type = "application/xml"
+
 [build.environment]
   NODE_VERSION = "18"
