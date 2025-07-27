@@ -52,7 +52,7 @@ export const AnalysisContent: React.FC<AnalysisContentProps> = ({
           </p>
           <button
             onClick={() => handleCopy(currentPrompt)}
-            className="flex-shrink-0 p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-200 opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+            className="flex-shrink-0 p-1 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-200 opacity-70 hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
             aria-label="Copy prompt to clipboard"
             title={copied ? 'Copied!' : 'Copy to clipboard'}
           >

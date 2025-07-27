@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Image, Video, Music } from 'lucide-react';
+import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Image, Video, Music, Search, X } from 'lucide-react';
 import { getPosts, getPostsByUserId, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 
@@ -23,8 +23,18 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   const [selectedMediaType, setSelectedMediaType] = useState<'image' | 'video' | 'audio'>('image');
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInputValue, setSearchInputValue] = useState('');
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
+  // Debounce search query to avoid excessive API calls
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setSearchQuery(searchInputValue);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchInputValue]);
   const loadPosts = useCallback(async (reset: boolean = false) => {
     try {
       if (reset) {
@@ -39,9 +49,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       // NEW: Use different fetch function based on whether we're viewing an artist's profile
       let result;
       if (artistId) {
-        result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType);
+        result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType, searchQuery);
       } else {
-        result = await getPosts(sortOrder, 12, offset, selectedMediaType);
+        result = await getPosts(sortOrder, 12, offset, selectedMediaType, searchQuery);
       }
       
       const { posts: newPosts, hasMore: moreAvailable } = result;
@@ -58,7 +68,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
         hasMore: moreAvailable,
         isArtistProfile: !!artistId,
         artistId,
-        mediaType: selectedMediaType
+        mediaType: selectedMediaType,
+        searchQuery
       });
     } catch (error) {
       console.error('Failed to load posts:', error);
@@ -67,18 +78,19 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
         context: 'loadPosts',
         isArtistProfile: !!artistId,
         artistId,
-        mediaType: selectedMediaType
+        mediaType: selectedMediaType,
+        searchQuery
       });
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [sortOrder, selectedMediaType, posts.length, artistId]);
+  }, [sortOrder, selectedMediaType, posts.length, artistId, searchQuery]);
 
   // Load posts on mount and when sort order, media type, or artist changes
   useEffect(() => {
     loadPosts(true);
-  }, [sortOrder, selectedMediaType, artistId]);
+  }, [sortOrder, selectedMediaType, artistId, searchQuery]);
 
   // Infinite scroll
   useEffect(() => {
@@ -104,7 +116,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       to: newSort,
       isArtistProfile: !!artistId,
       artistId,
-      mediaType: selectedMediaType
+      mediaType: selectedMediaType,
+      searchQuery
     });
     setSortOrder(newSort);
   };
@@ -114,17 +127,27 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       from: selectedMediaType, 
       to: newMediaType,
       isArtistProfile: !!artistId,
-      artistId
+      artistId,
+      searchQuery
     });
     setSelectedMediaType(newMediaType);
   };
 
+  const handleClearSearch = () => {
+    setSearchInputValue('');
+    addBreadcrumb('Search cleared', 'ui', { 
+      previousQuery: searchInputValue,
+      isArtistProfile: !!artistId,
+      artistId
+    });
+  };
   const handlePostClick = (post: Post) => {
     addBreadcrumb('Gallery post clicked', 'ui', { 
       postId: post.id,
       isArtistProfile: !!artistId,
       artistId,
-      mediaType: post.media_type
+      mediaType: post.media_type,
+      searchQuery
     });
     onPostClick(post);
   };
@@ -335,6 +358,29 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-improved-contrast pointer-events-none" size={16} />
             </div>
 
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={searchInputValue}
+                  onChange={(e) => setSearchInputValue(e.target.value)}
+                  placeholder="Search styles, titles, or prompts..."
+                  className="w-full bg-black/60 backdrop-blur-sm hover:bg-black/80 focus:bg-black/80 text-improved-contrast rounded-lg pl-10 pr-10 py-2 text-sm border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all duration-300"
+                  aria-label="Search gallery content"
+                />
+                {searchInputValue && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
             {/* Powered by Bolt Tag - Moved to the right of the dropdown */}
             <div className="flex items-center space-x-2">
               <img 
@@ -354,7 +400,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             </div>
           </div>
         </header>
-
+          {/* Right Section - Sort and Powered by Bolt */}
+          <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
         {/* Content */}
         <section className="p-4" aria-label="Gallery content">
           {loading && posts.length === 0 ? (
@@ -391,7 +438,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 <p className="text-improved-muted text-lg mb-2">{getEmptyStateMessage().title}</p>
                 <p className="text-gray-400 text-sm mb-4">{getEmptyStateMessage().subtitle}</p>
                 <button
-                  onClick={onBack}
+                  onClick={searchQuery.trim() ? handleClearSearch : onBack}
                   className="px-6 py-2 bg-[#D4B896] hover:bg-[#C4A886] text-[#1a1a1a] rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   {getEmptyStateMessage().buttonText}

@@ -380,16 +380,23 @@ export const getPosts = async (
   sortOrder: 'new' | 'top' | 'hot' = 'new',
   limit: number = 12,
   offset: number = 0,
-  mediaType: 'image' | 'video' | 'audio' = 'image'
+  mediaType: 'image' | 'video' | 'audio' = 'image',
+  searchQuery?: string
 ): Promise<{ posts: Post[]; hasMore: boolean }> => {
   try {
-    addBreadcrumb('Fetching posts', 'database', { sortOrder, limit, offset, mediaType });
+    addBreadcrumb('Fetching posts', 'database', { sortOrder, limit, offset, mediaType, searchQuery });
 
     let query = supabase
       .from('posts')
       .select('*')
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
+
+    // Add search filter if query is provided
+    if (searchQuery && searchQuery.trim()) {
+      const trimmedQuery = searchQuery.trim();
+      query = query.or(`title.ilike.%${trimmedQuery}%,style.ilike.%${trimmedQuery}%,analysis_data->>prompt.ilike.%${trimmedQuery}%`);
+    }
 
     // Apply sorting based on the selected order
     switch (sortOrder) {
@@ -420,6 +427,7 @@ export const getPosts = async (
         limit,
         offset,
         mediaType,
+        searchQuery,
         errorCode: error.code
       });
       throw error;
@@ -433,6 +441,7 @@ export const getPosts = async (
     console.log('Posts fetched with sorting and filtering:', {
       sortOrder,
       mediaType,
+      searchQuery,
       count: actualPosts.length,
       samplePosts: actualPosts.slice(0, 3).map(p => ({
         id: p.id.substring(0, 8),
@@ -449,6 +458,7 @@ export const getPosts = async (
     addBreadcrumb('Posts fetched successfully', 'database', { 
       sortOrder,
       mediaType,
+      searchQuery,
       count: actualPosts.length,
       hasMore 
     });
@@ -465,10 +475,11 @@ export const getPostsByUserId = async (
   sortOrder: 'new' | 'top' | 'hot' = 'new',
   limit: number = 12,
   offset: number = 0,
-  mediaType: 'image' | 'video' | 'audio' = 'image'
+  mediaType: 'image' | 'video' | 'audio' = 'image',
+  searchQuery?: string
 ): Promise<{ posts: Post[]; hasMore: boolean }> => {
   try {
-    addBreadcrumb('Fetching posts by user ID', 'database', { userId, sortOrder, limit, offset, mediaType });
+    addBreadcrumb('Fetching posts by user ID', 'database', { userId, sortOrder, limit, offset, mediaType, searchQuery });
 
     let query = supabase
       .from('posts')
@@ -476,6 +487,12 @@ export const getPostsByUserId = async (
       .eq('user_id', userId)
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
+
+    // Add search filter if query is provided
+    if (searchQuery && searchQuery.trim()) {
+      const trimmedQuery = searchQuery.trim();
+      query = query.or(`title.ilike.%${trimmedQuery}%,style.ilike.%${trimmedQuery}%,analysis_data->>prompt.ilike.%${trimmedQuery}%`);
+    }
 
     // Apply sorting based on the selected order
     switch (sortOrder) {
@@ -505,6 +522,7 @@ export const getPostsByUserId = async (
         limit,
         offset,
         mediaType,
+        searchQuery,
         errorCode: error.code
       });
       throw error;
@@ -518,6 +536,7 @@ export const getPostsByUserId = async (
       userId,
       sortOrder,
       mediaType,
+      searchQuery,
       count: actualPosts.length,
       hasMore 
     });
@@ -534,10 +553,11 @@ export const getPostsByStyle = async (
   sortOrder: 'new' | 'top' | 'hot' = 'new',
   limit: number = 12,
   offset: number = 0,
-  mediaType: 'image' | 'video' | 'audio' = 'image'
+  mediaType: 'image' | 'video' | 'audio' = 'image',
+  searchQuery?: string
 ): Promise<{ posts: Post[]; hasMore: boolean }> => {
   try {
-    addBreadcrumb('Fetching posts by style', 'database', { style, sortOrder, limit, offset, mediaType });
+    addBreadcrumb('Fetching posts by style', 'database', { style, sortOrder, limit, offset, mediaType, searchQuery });
 
     let query = supabase
       .from('posts')
@@ -545,6 +565,12 @@ export const getPostsByStyle = async (
       .eq('style', style)
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
+
+    // Add search filter if query is provided
+    if (searchQuery && searchQuery.trim()) {
+      const trimmedQuery = searchQuery.trim();
+      query = query.or(`title.ilike.%${trimmedQuery}%,analysis_data->>prompt.ilike.%${trimmedQuery}%`);
+    }
 
     // Apply sorting based on the selected order
     switch (sortOrder) {
@@ -574,6 +600,7 @@ export const getPostsByStyle = async (
         limit,
         offset,
         mediaType,
+        searchQuery,
         errorCode: error.code
       });
       throw error;
@@ -587,6 +614,7 @@ export const getPostsByStyle = async (
       style,
       sortOrder,
       mediaType,
+      searchQuery,
       count: actualPosts.length,
       hasMore 
     });
