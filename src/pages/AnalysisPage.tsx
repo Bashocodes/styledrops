@@ -794,7 +794,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                     <button
                       key={index}
                       onClick={() => handleKeyTokenClick(token)}
-                      className="px-4 py-3 bg-black/30 text-[#A3C4B8] text-base font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                      className="px-3 py-2 bg-black/30 text-[#A3C4B8] text-sm font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                       aria-label={`Add token: ${token}`}
                       title={`Click to add "${token}" to prompt`}
                     >
