@@ -390,7 +390,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   const handleStyleClick = () => {
-    addBreadcrumb('User clicked style description', 'ui', { style: currentAnalysis.style });
+    addBreadcrumb('User clicked style description', 'ui', { style: currentAnalysisData.style });
     
     if (onViewStyleGallery) {
       onViewStyleGallery(currentAnalysisData.style);
@@ -467,7 +467,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         {currentMediaType === 'image' && (
           <img
             src={displayMediaUrl}
-            alt={currentAnalysis.title}
+            alt={currentAnalysisData.title}
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
             onError={(e) => {
@@ -551,7 +551,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             <React.Fragment key={module.id}>
               <button
                 onClick={() => handleTabClick(module.id, setActiveModule)}
-                onClick={() => postIdParam && handleDeletePost(postIdParam)}
                 className={`flex-1 p-3 text-xs font-medium transition-all duration-300 relative overflow-hidden ${
                   isActive
                     ? 'text-white'
@@ -831,7 +830,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               <div className="mb-4">
                 <h2 className="sr-only">Key style tokens</h2>
                 <div className="flex flex-wrap gap-1">
-                  {currentAnalysis.keyTokens.map((token, index) => (
+                  {currentAnalysisData.keyTokens.map((token, index) => (
                     <button
                       key={index}
                       onClick={() => handleKeyTokenClick(token)}
