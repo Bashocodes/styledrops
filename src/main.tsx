@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
+import { BrowserRouter } from 'react-router-dom';
 import './index.css';
 import { initSentry } from './lib/sentry';
 import SentryErrorBoundary from './components/ErrorBoundary';
@@ -21,9 +22,11 @@ if (!rootElement) {
 try {
   createRoot(rootElement).render(
     <StrictMode>
-      <SentryErrorBoundary>
-        <App />
-      </SentryErrorBoundary>
+      <BrowserRouter>
+        <SentryErrorBoundary>
+          <App />
+        </SentryErrorBoundary>
+      </BrowserRouter>
     </StrictMode>
   );
 } catch (error) {
