@@ -144,11 +144,13 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   const currentArtistId = isFromDecodePage ? artistId : fetchedPost?.user_id;
   const currentPostId = isFromDecodePage ? undefined : postIdParam; // Use postIdParam for fetched posts
 
-  // Fetch post data if postIdParam is present and not from decode page
-  useEffect(() => {
-    const loadPost = async () => {
-      if (postIdParam && !isFromDecodePage) {
-        setFetchingPost(true);
+  // Check if we have a valid database ID for posting - use useMemo to handle dependency properly
+  const hasValidDatabaseId = React.useMemo(() => {
+    return currentAnalysisData?.id && 
+      typeof currentAnalysisData.id === 'string' && 
+      currentAnalysisData.id.length > 0 &&
+      currentAnalysisData.id !== 'temp-id';
+  }, [currentAnalysisData]);
         setFetchError(null);
         try {
           const post = await getPostById(postIdParam);
