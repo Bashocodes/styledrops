@@ -2,19 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Image, Video, Music, Search, X } from 'lucide-react';
 import { getPosts, getPostsByUserId, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
+import { useParams } from 'react-router-dom';
 
 interface GalleryViewProps {
   onBack: () => void;
   onPostClick: (post: Post) => void;
-  artistId?: string; // NEW: Optional artist ID to filter posts
-  artistUsername?: string; // NEW: Optional artist username for display
 }
 
 export const GalleryView: React.FC<GalleryViewProps> = ({ 
   onBack, 
   onPostClick, 
-  artistId, 
-  artistUsername 
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +23,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInputValue, setSearchInputValue] = useState('');
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { artistId } = useParams<{ artistId: string }>(); // Get artistId from URL params
 
   // Debounce search query to avoid excessive API calls
   useEffect(() => {
@@ -49,7 +47,14 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       
       // NEW: Use different fetch function based on whether we're viewing an artist's profile
       let result;
+      let artistUsername: string | undefined; // Need to fetch username if artistId is present
       if (artistId) {
+        // In a real app, you'd fetch the artist's username here based on artistId
+        // For now, we'll just use a placeholder or assume it's passed if needed
+        // Or, if the profile table has a username, you could fetch it.
+        // For simplicity, we'll just use the ID for now.
+        // If you need the username, you'd add a getUserProfile(artistId) call here.
+        artistUsername = artistId; // Placeholder
         result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType, searchQuery);
       } else {
         result = await getPosts(sortOrder, 12, offset, selectedMediaType, searchQuery);
@@ -66,6 +71,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       setHasMore(moreAvailable);
       addBreadcrumb('Posts loaded', 'ui', { 
         count: newPosts.length, 
+        artistUsername,
         hasMore: moreAvailable,
         isArtistProfile: !!artistId,
         artistId,

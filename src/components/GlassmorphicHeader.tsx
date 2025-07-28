@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Settings
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 
@@ -29,6 +30,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
   signInError,
   onDismissSignInError
 }) => {
+  const navigate = useNavigate();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -60,13 +62,13 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
 
   const handleLogoClick = () => {
     addBreadcrumb('Logo clicked', 'ui');
-    onLogoClick?.();
+    navigate('/');
   };
 
   const handleAccountClick = () => {
     addBreadcrumb('Account settings clicked', 'ui');
     setShowProfileMenu(false);
-    onProfileClick();
+    navigate('/profile-settings');
   };
 
   // Get display name with priority: username > full_name > email prefix
@@ -153,7 +155,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Center Section - Decode Button */}
             <button
               onClick={() => {
-                onDecodeClick();
+                navigate('/decode');
                 addBreadcrumb('Decode button clicked', 'ui');
               }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
@@ -280,8 +282,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
           <nav className="flex flex-col items-center space-y-6">
             {/* Decode Button for Mobile */}
             <button
-              onClick={() => {
-                onDecodeClick();
+              onClick={() => { // Use navigate directly here
+                navigate('/decode');
                 setIsMobileMenuOpen(false); // Close menu after click
                 addBreadcrumb('Decode button clicked (mobile)', 'ui');
               }}

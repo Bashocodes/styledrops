@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Upload, Loader2, AlertCircle, FileImage, FileVideo, FileAudio, X, ArrowLeft, ArrowRight, Copy, Check, ExternalLink, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { callGeminiAnalysisFunction } from '../lib/geminiApi';
 import { AnalysisResult, TOP_MODULES, BOTTOM_MODULES, ModuleDefinition } from '../constants/modules';
 import { AnalysisContent } from '../components/AnalysisContent';
@@ -17,6 +18,7 @@ interface DecodePageProps {
   ) => void;
   onBack: () => void;
 }
+
 
 // Static module descriptions for the decode page
 const DECODE_MODULE_DESCRIPTIONS = {

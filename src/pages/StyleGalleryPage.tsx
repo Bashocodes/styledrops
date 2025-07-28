@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Palette, Image, Video, Music } from 'lucide-react';
 import { getPostsByStyle, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
+import { useParams } from 'react-router-dom';
 
 interface StyleGalleryPageProps {
-  styleName: string;
   onBack: () => void;
   onPostClick: (post: Post) => void;
 }
 
-export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, onBack, onPostClick }) => {
+export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ onBack, onPostClick }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const { styleName } = useParams<{ styleName: string }>(); // Get styleName from URL params
 
   const loadPosts = useCallback(async (reset: boolean = false) => {
     try {
@@ -29,7 +30,12 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
       }
 
       const offset = reset ? 0 : posts.length;
-      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(styleName, sortOrder, 12, offset, selectedMediaType);
+      
+      if (!styleName) { // Handle case where styleName might be undefined from URL
+        setError('Style name not found in URL.');
+        return;
+      }
+      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(decodeURIComponent(styleName), sortOrder, 12, offset, selectedMediaType);
 
       if (reset) {
         setPosts(newPosts);
