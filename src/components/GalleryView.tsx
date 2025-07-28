@@ -502,6 +502,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             </>
           )}
         </section>
+          </div>
       </div>
     </main>
   );
