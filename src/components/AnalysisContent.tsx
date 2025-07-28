@@ -57,9 +57,9 @@ export const AnalysisContent: React.FC<AnalysisContentProps> = ({
             title={copied ? 'Copied!' : 'Copy to clipboard'}
           >
             {copied ? (
-              <Check className="w-3 h-3 text-green-400" />
+              <Check className="w-4 h-4 text-green-400" />
             ) : (
-              <Copy className="w-3 h-3 text-gray-400" />
+              <Copy className="w-4 h-4 text-gray-400" />
             )}
           </button>
         </div>
