@@ -80,6 +80,62 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   // NEW: Copy feedback state for style codes
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
+  // Initialize editable prompt when analysis changes
+  useEffect(() => {
+    if (currentAnalysisData?.prompt) {
+      setEditablePrompt(currentAnalysisData.prompt);
+    }
+  }, [currentAnalysisData?.prompt]);
+
+  // Check if analysis is already posted
+  useEffect(() => {
+    const checkPostStatus = async () => {
+      console.log('DEBUG: AnalysisPage - checkPostStatus called', {
+        analysisId: currentAnalysisData?.id,
+        hasValidDatabaseId: hasValidDatabaseId,
+        analysisIdType: typeof currentAnalysisData?.id,
+        analysisIdLength: currentAnalysisData?.id ? currentAnalysisData.id.length : 0,
+        isFromDecodePage: isFromDecodePage
+      });
+
+      if (hasValidDatabaseId && !isFromDecodePage && currentAnalysisData?.id) {
+        try {
+          setCheckingPostStatus(true);
+          const alreadyPosted = await checkIfAnalysisIsPosted(currentAnalysisData.id);
+          
+          console.log('DEBUG: AnalysisPage - checkIfAnalysisIsPosted result', {
+            analysisId: currentAnalysisData.id,
+            alreadyPosted: alreadyPosted,
+            resultType: typeof alreadyPosted
+          });
+          
+          setIsAlreadyPosted(alreadyPosted);
+          addBreadcrumb('Post status checked', 'ui', { 
+            analysisId: currentAnalysisData.id,
+            alreadyPosted 
+          });
+        } catch (error) {
+          console.error('Failed to check post status:', error);
+          captureError(error as Error, { context: 'checkPostStatus' });
+          setIsAlreadyPosted(false);
+        } finally {
+          setCheckingPostStatus(false);
+        }
+      } else {
+        console.log('DEBUG: AnalysisPage - No valid database ID or is from decode page, setting isAlreadyPosted to false', {
+          hasValidDatabaseId,
+          isFromDecodePage
+        });
+        setIsAlreadyPosted(false);
+      }
+    };
+
+    // Only run this effect if currentAnalysisData is available
+    if (currentAnalysisData) {
+      checkPostStatus();
+    }
+  }, [currentAnalysisData, hasValidDatabaseId, isFromDecodePage]);
+
   // Determine the actual analysis data to use
   const currentAnalysisData = isFromDecodePage ? analysis : fetchedPost?.analysis_data;
   const currentMediaUrl = isFromDecodePage ? mediaUrl : fetchedPost?.media_url;
@@ -127,73 +183,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   if (!currentAnalysisData || !currentMediaUrl || !currentMediaType) {
     return <div className="min-h-screen pt-16 flex items-center justify-center text-red-400">Analysis data is missing.</div>;
   }
-
-  // Initialize editable prompt when analysis changes
-  useEffect(() => {
-    setEditablePrompt(currentAnalysisData.prompt);
-  }, [currentAnalysisData.prompt]);
-
-  const hasValidDatabaseId = currentAnalysisData.id && typeof currentAnalysisData.id === 'string' && currentAnalysisData.id.length === 36;
-
-  console.log('AnalysisPage rendered with R2 URL:', {
-    isFromDecodePage,
-    hasValidDatabaseId,
-    analysisId: currentAnalysisData.id,
-    mediaUrl: currentMediaUrl,
-    isR2Url: currentMediaUrl.includes('r2.cloudflarestorage.com') || currentMediaUrl.includes('cdn.'),
-    hasThumbnailFile: !!thumbnailFile,
-    postId: currentPostId, // Log post ID
-    canDelete: !!(user && currentPostId && currentArtistId && user.id === currentArtistId) // Log delete capability
-  });
-
-  // Check if analysis is already posted
-  useEffect(() => {
-    const checkPostStatus = async () => {
-      console.log('DEBUG: AnalysisPage - checkPostStatus called', {
-        analysisId: currentAnalysisData.id,
-        hasValidDatabaseId: hasValidDatabaseId,
-        analysisIdType: typeof currentAnalysisData.id,
-        analysisIdLength: currentAnalysisData.id ? currentAnalysisData.id.length : 0,
-        isFromDecodePage: isFromDecodePage
-      });
-
-      if (hasValidDatabaseId && !isFromDecodePage) {
-        try {
-          setCheckingPostStatus(true);
-          const alreadyPosted = await checkIfAnalysisIsPosted(currentAnalysisData.id!);
-          
-          console.log('DEBUG: AnalysisPage - checkIfAnalysisIsPosted result', {
-            analysisId: currentAnalysisData.id,
-            alreadyPosted: alreadyPosted,
-            resultType: typeof alreadyPosted
-          });
-          
-          setIsAlreadyPosted(alreadyPosted);
-          addBreadcrumb('Post status checked', 'ui', { 
-            analysisId: currentAnalysisData.id,
-            alreadyPosted 
-          });
-        } catch (error) {
-          console.error('Failed to check post status:', error);
-          captureError(error as Error, { context: 'checkPostStatus' });
-          setIsAlreadyPosted(false);
-        } finally {
-          setCheckingPostStatus(false);
-        }
-      } else {
-        console.log('DEBUG: AnalysisPage - No valid database ID or is from decode page, setting isAlreadyPosted to false', {
-          hasValidDatabaseId,
-          isFromDecodePage
-        });
-        setIsAlreadyPosted(false);
-      }
-    };
-
-    // Only run this effect if currentAnalysisData is available
-    if (currentAnalysisData) {
-      checkPostStatus();
-    }
-  }, [currentAnalysisData, hasValidDatabaseId, isFromDecodePage]);
 
   const getMediaTypeLabel = () => {
     switch (currentMediaType) {
