@@ -1030,39 +1030,3 @@ export const validateAndFixMediaUrl = (url: string): string => {
     return url;
   }
 };
-
-// Get a single post by ID
-export const getPostById = async (postId: string): Promise<Post | null> => {
-  try {
-    addBreadcrumb('Fetching post by ID', 'database', { postId });
-
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('id', postId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Post not found
-        console.log('Post not found:', postId);
-        addBreadcrumb('Post not found', 'database', { postId });
-        return null;
-      }
-      
-      console.error('Error fetching post by ID:', error);
-      captureError(new Error(error.message), { 
-        context: 'getPostById',
-        postId,
-        errorCode: error.code
-      });
-      throw error;
-    }
-
-    addBreadcrumb('Post fetched successfully by ID', 'database', { postId });
-    return data;
-  } catch (error) {
-    captureError(error as Error, { context: 'getPostById', postId });
-    throw error;
-  }
-};
