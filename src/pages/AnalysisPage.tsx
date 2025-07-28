@@ -511,7 +511,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             <React.Fragment key={module.id}>
               <button
                 onClick={() => handleTabClick(module.id, setActiveModule)}
-                className={`flex-1 p-3 text-xs font-medium transition-all duration-300 relative overflow-hidden ${
+                className="flex items-center space-x-2 font-mono text-lg cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                   isActive
                     ? 'text-white'
                     : 'text-gray-400 hover:text-gray-300'
@@ -602,16 +602,16 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   });
 
   return (
-    <main className="min-h-screen pt-16 h-screen overflow-hidden bg-charcoal-matte font-inter">
+    <main className="min-h-screen pt-16 bg-charcoal-matte font-inter">
       {/* Mobile Layout: Flex Column, Desktop Layout: Flex Row */}
-      <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
         {/* Media Display Section */}
-        <section className="w-full lg:w-3/5 h-auto lg:h-full p-4 flex items-center justify-center relative" aria-label="Media display">
+        <section className="w-full lg:w-3/5 h-auto lg:h-full max-h-[400px] lg:max-h-none p-4 flex items-center justify-center relative overflow-hidden" aria-label="Media display">
           {renderMedia()}
         </section>
 
         {/* Control Deck Section */}
-        <aside className="w-full lg:w-2/5 flex flex-col max-h-[60vh] lg:max-h-full" aria-label="Analysis controls and information">
+        <aside className="w-full lg:w-2/5 flex flex-col lg:max-h-full" aria-label="Analysis controls and information">
           {/* Scrollable Content Area */}
           <div className="flex-1 overflow-y-auto">
             <div className="bg-black/50 backdrop-blur-md shadow-inner relative p-6 rounded-2xl">
@@ -690,14 +690,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               )}
 
               {/* Analysis Title */}
-              <h1 className="text-3xl lg:text-4xl font-light text-[#8FB3A8] mb-3">
+              <h1 className="text-4xl lg:text-5xl font-light text-[#8FB3A8] mb-3">
                 {currentAnalysis.title}
               </h1>
               
               {/* Analysis Style - Clickable */}
               <p
                 onClick={handleStyleClick}
-                className="text-[#8FB3A8] font-mono text-base leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-3 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                className="text-[#8FB3A8] font-mono text-lg leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-3 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                 tabIndex={0}
                 role="button"
                 aria-label={`Explore ${currentAnalysis.style} style gallery`}
@@ -727,7 +727,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               <textarea
                 value={editablePrompt}
                 onChange={(e) => setEditablePrompt(e.target.value)}
-                className="w-full bg-white/5 rounded-xl p-4 text-improved-contrast text-base font-mono leading-relaxed resize-none border-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/10 transition-colors mb-4"
+                className="w-full bg-white/5 rounded-xl p-4 text-improved-contrast text-lg font-mono leading-relaxed resize-none border-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/10 transition-colors mb-4"
                 rows={4}
                 placeholder="Edit your prompt here..."
                 aria-label="Editable prompt text"
