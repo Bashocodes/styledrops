@@ -10,7 +10,6 @@ import {
   AlertCircle,
   Settings
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 
@@ -23,14 +22,13 @@ interface GlassmorphicHeaderProps {
 }
 
 export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
-  // onDecodeClick,
-  // onLogoClick,
+  onDecodeClick,
+  onLogoClick,
   // ... existing props
-  // onProfileClick,
+  onProfileClick,
   signInError,
   onDismissSignInError
 }) => {
-  const navigate = useNavigate();
   const { user, loading, signInWithGoogle, signOut } = useAuth();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
@@ -62,13 +60,13 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
 
   const handleLogoClick = () => {
     addBreadcrumb('Logo clicked', 'ui');
-    navigate('/');
+    onLogoClick?.();
   };
 
   const handleAccountClick = () => {
     addBreadcrumb('Account settings clicked', 'ui');
     setShowProfileMenu(false);
-    navigate('/profile-settings');
+    onProfileClick();
   };
 
   // Get display name with priority: username > full_name > email prefix
@@ -155,7 +153,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Center Section - Decode Button */}
             <button
               onClick={() => {
-                navigate('/decode');
+                onDecodeClick();
                 addBreadcrumb('Decode button clicked', 'ui');
               }}
               className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
@@ -282,10 +280,10 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
           <nav className="flex flex-col items-center space-y-6">
             {/* Decode Button for Mobile */}
             <button
-              onClick={() => { // Use navigate directly here
-                navigate('/decode');
-                addBreadcrumb('Decode button clicked (mobile)', 'ui');
+              onClick={() => {
+                onDecodeClick();
                 setIsMobileMenuOpen(false); // Close menu after click
+                addBreadcrumb('Decode button clicked (mobile)', 'ui');
               }}
               className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               aria-label="Decode media - analyze your images, videos, or audio"
