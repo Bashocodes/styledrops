@@ -4,16 +4,16 @@ import { AnalysisResult, TOP_MODULES, BOTTOM_MODULES, ModuleDefinition } from '.
 import { AnalysisContent } from '../components/AnalysisContent';
 import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
-import { createPost, PostData, checkIfAnalysisIsPosted, deletePost } from '../lib/supabaseUtils';
+import { createPost, PostData, checkIfAnalysisIsPosted, deletePost, getPostById, Post } from '../lib/supabaseUtils';
 import { uploadFileToR2, extractKeyFromUrl } from '../lib/r2';
+import { useParams } from 'react-router-dom';
 
 interface AnalysisPageProps {
   analysis?: AnalysisResult;
-  mediaUrl: string; // This will now be an R2 CDN URL
-  mediaType: 'image' | 'video' | 'audio';
+  mediaUrl?: string; // This will now be an R2 CDN URL
+  mediaType?: 'image' | 'video' | 'audio';
   artistUsername?: string;
   artistId?: string;
-  postId?: string; // NEW: Post ID for deletion functionality
   onBack: () => void;
   onTextClick?: (text: string) => void;
   isTextOnlyAnalysis?: boolean;
@@ -22,7 +22,7 @@ interface AnalysisPageProps {
   onViewArtistProfile?: (artistId: string) => void;
   isFromDecodePage?: boolean;
   onViewStyleGallery?: (style: string) => void;
-  onPostDeleted?: () => void; // NEW: Callback for when post is deleted
+  onPostDeleted?: () => void;
 }
 
 export const AnalysisPage: React.FC<AnalysisPageProps> = ({
@@ -31,7 +31,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   mediaType,
   artistUsername,
   artistId,
-  postId, // NEW: Post ID prop
   onBack,
   onTextClick,
   isTextOnlyAnalysis = false,
@@ -40,8 +39,9 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   onViewArtistProfile,
   isFromDecodePage = false,
   onViewStyleGallery,
-  onPostDeleted // NEW: Post deletion callback
+  onPostDeleted
 }) => {
+  const { postId: postIdParam } = useParams<{ postId: string }>();
   const { user, loading: authLoading } = useAuth();
   const [activeTopModule, setActiveTopModule] = useState<string>(TOP_MODULES[0].id);
   const [activeBottomModule, setActiveBottomModule] = useState<string>(BOTTOM_MODULES[0].id);
@@ -49,8 +49,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   const [postStatus, setPostStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [isAlreadyPosted, setIsAlreadyPosted] = useState(false);
   const [checkingPostStatus, setCheckingPostStatus] = useState(false);
+  
+  // State for fetched post data if not from decode page
+  const [fetchedPost, setFetchedPost] = useState<Post | null>(null);
+  const [fetchingPost, setFetchingPost] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
-  // NEW: Delete confirmation modal state
+
+  // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -74,55 +80,38 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   // NEW: Copy feedback state for style codes
   const [copiedCodeIndex, setCopiedCodeIndex] = useState<number | null>(null);
 
-  const currentAnalysis = analysis;
-
-  if (!currentAnalysis) {
-    throw new Error('Analysis data is required');
-  }
-
   // Initialize editable prompt when analysis changes
   useEffect(() => {
-    setEditablePrompt(currentAnalysis.prompt);
-  }, [currentAnalysis.prompt]);
-
-  const hasValidDatabaseId = currentAnalysis.id && typeof currentAnalysis.id === 'string' && currentAnalysis.id.length === 36;
-
-  console.log('AnalysisPage rendered with R2 URL:', {
-    isFromDecodePage,
-    hasValidDatabaseId,
-    analysisId: currentAnalysis.id,
-    mediaUrl: mediaUrl,
-    isR2Url: mediaUrl.includes('r2.cloudflarestorage.com') || mediaUrl.includes('cdn.'),
-    hasThumbnailFile: !!thumbnailFile,
-    postId: postId, // NEW: Log post ID
-    canDelete: !!(user && postId && artistId && user.id === artistId) // NEW: Log delete capability
-  });
+    if (currentAnalysisData?.prompt) {
+      setEditablePrompt(currentAnalysisData.prompt);
+    }
+  }, [currentAnalysisData?.prompt]);
 
   // Check if analysis is already posted
   useEffect(() => {
     const checkPostStatus = async () => {
       console.log('DEBUG: AnalysisPage - checkPostStatus called', {
-        analysisId: currentAnalysis.id,
+        analysisId: currentAnalysisData?.id,
         hasValidDatabaseId: hasValidDatabaseId,
-        analysisIdType: typeof currentAnalysis.id,
-        analysisIdLength: currentAnalysis.id ? currentAnalysis.id.length : 0,
+        analysisIdType: typeof currentAnalysisData?.id,
+        analysisIdLength: currentAnalysisData?.id ? currentAnalysisData.id.length : 0,
         isFromDecodePage: isFromDecodePage
       });
 
-      if (hasValidDatabaseId && !isFromDecodePage) {
+      if (hasValidDatabaseId && !isFromDecodePage && currentAnalysisData?.id) {
         try {
           setCheckingPostStatus(true);
-          const alreadyPosted = await checkIfAnalysisIsPosted(currentAnalysis.id!);
+          const alreadyPosted = await checkIfAnalysisIsPosted(currentAnalysisData.id);
           
           console.log('DEBUG: AnalysisPage - checkIfAnalysisIsPosted result', {
-            analysisId: currentAnalysis.id,
+            analysisId: currentAnalysisData.id,
             alreadyPosted: alreadyPosted,
             resultType: typeof alreadyPosted
           });
           
           setIsAlreadyPosted(alreadyPosted);
           addBreadcrumb('Post status checked', 'ui', { 
-            analysisId: currentAnalysis.id,
+            analysisId: currentAnalysisData.id,
             alreadyPosted 
           });
         } catch (error) {
@@ -141,11 +130,70 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       }
     };
 
-    checkPostStatus();
-  }, [currentAnalysis.id, hasValidDatabaseId, isFromDecodePage]);
+    // Only run this effect if currentAnalysisData is available
+    if (currentAnalysisData) {
+      checkPostStatus();
+    }
+  }, [currentAnalysisData, hasValidDatabaseId, isFromDecodePage]);
+
+  // Determine the actual analysis data to use
+  const currentAnalysisData = isFromDecodePage ? analysis : fetchedPost?.analysis_data;
+  const currentMediaUrl = isFromDecodePage ? mediaUrl : fetchedPost?.media_url;
+  const currentMediaType = isFromDecodePage ? mediaType : fetchedPost?.media_type;
+  const currentArtistUsername = isFromDecodePage ? artistUsername : fetchedPost?.username;
+  const currentArtistId = isFromDecodePage ? artistId : fetchedPost?.user_id;
+  const currentPostId = isFromDecodePage ? undefined : postIdParam; // Use postIdParam for fetched posts
+
+  // Check if we have a valid database ID for posting - use useMemo to handle dependency properly
+  const hasValidDatabaseId = React.useMemo(() => {
+    return currentAnalysisData?.id && 
+      typeof currentAnalysisData.id === 'string' && 
+      currentAnalysisData.id.length > 0 &&
+      currentAnalysisData.id !== 'temp-id';
+  }, [currentAnalysisData]);
+
+  // Fetch post data if not from decode page
+  useEffect(() => {
+    const loadPost = async () => {
+      if (postIdParam && !isFromDecodePage) {
+        setFetchingPost(true);
+        setFetchError(null);
+        try {
+          const post = await getPostById(postIdParam);
+          if (post) {
+            setFetchedPost(post);
+            // If it's a fetched post, it's already posted
+            setIsAlreadyPosted(true);
+          } else {
+            setFetchError('Post not found.');
+          }
+        } catch (err) {
+          console.error('Error fetching post:', err);
+          setFetchError('Failed to load post data.');
+          captureError(err as Error, { context: 'AnalysisPage_loadPost' });
+        } finally {
+          setFetchingPost(false);
+        }
+      } else {
+        setFetchedPost(null); // Clear fetched post if navigating from decode
+      }
+    };
+    loadPost();
+  }, [postIdParam, isFromDecodePage]);
+
+  // Handle cases where analysis data is not available
+  if (fetchingPost) {
+    return <div className="min-h-screen pt-16 flex items-center justify-center text-white"><Loader2 className="w-8 h-8 animate-spin mr-3" /> Loading analysis...</div>;
+  }
+  if (fetchError) {
+    return <div className="min-h-screen pt-16 flex items-center justify-center text-red-400">{fetchError}</div>;
+  }
+  if (!currentAnalysisData || !currentMediaUrl || !currentMediaType) {
+    return <div className="min-h-screen pt-16 flex items-center justify-center text-red-400">Analysis data is missing.</div>;
+  }
 
   const getMediaTypeLabel = () => {
-    switch (mediaType) {
+    switch (currentMediaType) {
       case 'image': return 'Image Analysis';
       case 'video': return 'Video Analysis';
       case 'audio': return 'Audio Analysis';
@@ -154,7 +202,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   const getMediaTypeIcon = () => {
-    switch (mediaType) {
+    switch (currentMediaType) {
       case 'image': return Type;
       case 'video': return Play;
       case 'audio': return Volume2;
@@ -171,7 +219,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
     if (!hasValidDatabaseId) {
       addBreadcrumb('User attempted to post analysis without database ID', 'ui');
-      alert('This analysis could not be saved to the database and cannot be posted to the gallery. Please try analyzing the media again.');
+      alert('This analysis could not be saved to the database and cannot be posted to the gallery. Please try analyzing the media again. (Analysis ID missing)');
       return;
     }
 
@@ -192,8 +240,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       setPostStatus('idle');
       addBreadcrumb('User initiated post to gallery with R2 URL', 'ui');
 
-      let finalMediaUrl = mediaUrl; // Should already be R2 CDN URL
-      let r2Key = extractKeyFromUrl(mediaUrl); // Extract R2 key from URL
+      let finalMediaUrl = currentMediaUrl; // Should already be R2 CDN URL
+      let r2Key = extractKeyFromUrl(currentMediaUrl); // Extract R2 key from URL
       let thumbnailUrl: string | undefined;
 
       // If we have a selected media file, upload it to R2 (for decode page)
@@ -268,10 +316,10 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         user_id: user.id,
         username: user.username,
         media_url: finalMediaUrl, // R2 CDN URL
-        media_type: mediaType,
-        title: currentAnalysis.title,
-        style: currentAnalysis.style,
-        analysis_data: currentAnalysis,
+        media_type: currentMediaType,
+        title: currentAnalysisData.title,
+        style: currentAnalysisData.style,
+        analysis_data: currentAnalysisData,
         thumbnail_url: thumbnailUrl, // R2 CDN URL for thumbnail
         r2_key: r2Key || undefined // Store R2 key for deletion
       };
@@ -311,7 +359,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   // NEW: Handle delete post
-  const handleDeletePost = async () => {
+  const handleDeletePost = async (postId: string) => {
     if (!user || !postId) {
       addBreadcrumb('Delete attempted without valid user or post ID', 'ui');
       alert('Unable to delete post. Please try again.');
@@ -322,7 +370,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       setIsDeleting(true);
       addBreadcrumb('Starting post deletion', 'ui', { postId });
 
-      await deletePost(postId, user.id);
+      await deletePost(postId, user.id); // Use the postId passed to the function
       
       addBreadcrumb('Post deleted successfully', 'ui', { postId });
       setShowDeleteConfirm(false);
@@ -350,19 +398,19 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   const handleStyleClick = () => {
-    addBreadcrumb('User clicked style description', 'ui', { style: currentAnalysis.style });
+    addBreadcrumb('User clicked style description', 'ui', { style: currentAnalysisData.style });
     
     if (onViewStyleGallery) {
-      onViewStyleGallery(currentAnalysis.style);
+      onViewStyleGallery(currentAnalysisData.style);
     } else {
-      onTextClick?.(currentAnalysis.style);
+      onTextClick?.(currentAnalysisData.style);
     }
   };
 
   const handleViewArtistProfile = () => {
-    if (artistId && onViewArtistProfile) {
-      addBreadcrumb('User clicked artist profile', 'ui', { artistId });
-      onViewArtistProfile(artistId);
+    if (currentArtistId && onViewArtistProfile) {
+      addBreadcrumb('User clicked artist profile', 'ui', { artistId: currentArtistId });
+      onViewArtistProfile(currentArtistId);
     }
   };
 
@@ -414,20 +462,20 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
   const renderMedia = () => {
     // Use the mediaUrl directly - it should be an R2 CDN URL
-    const displayMediaUrl = mediaUrl;
+    const displayMediaUrl = currentMediaUrl;
     
     console.log('Rendering media with R2 URL:', {
       mediaUrl: displayMediaUrl,
-      mediaType: mediaType,
+      mediaType: currentMediaType,
       isR2Url: displayMediaUrl.includes('r2.cloudflarestorage.com') || displayMediaUrl.includes('cdn.')
     });
     
     return (
       <div className="relative w-full h-full flex items-center justify-center">
-        {mediaType === 'image' && (
+        {currentMediaType === 'image' && (
           <img
             src={displayMediaUrl}
-            alt={currentAnalysis.title}
+            alt={currentAnalysisData.title}
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
             onError={(e) => {
@@ -443,7 +491,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         )}
         
         {/* Fallback for broken images */}
-        {mediaType === 'image' && (
+        {currentMediaType === 'image' && (
           <div 
             className="absolute inset-0 bg-gradient-to-br from-[#B8A082]/20 to-[#7C9A92]/20 rounded-2xl flex items-center justify-center"
             style={{ display: 'none' }}
@@ -456,7 +504,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           </div>
         )}
         
-        {mediaType === 'video' && (
+        {currentMediaType === 'video' && (
           <video
             src={displayMediaUrl}
             controls
@@ -470,7 +518,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           />
         )}
         
-        {mediaType === 'audio' && (
+        {currentMediaType === 'audio' && (
           <div className="flex flex-col items-center justify-center space-y-6 p-8 bg-gradient-to-br from-accent-gold/20 to-muted-teal/20 rounded-2xl">
             <div className="w-32 h-32 bg-gradient-to-br from-accent-gold/20 to-muted-teal/20 rounded-full flex items-center justify-center">
               <Volume2 className="w-16 h-16 text-accent-gold" />
@@ -584,10 +632,10 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   // NEW: Check if user can delete this post
-  const canDeletePost = user && postId && artistId && user.id === artistId;
+  const canDeletePost = user && postIdParam && currentArtistId && user.id === currentArtistId;
 
   // NEW: Check if style codes input should be visible
-  const shouldShowStyleCodes = user && !isAlreadyPosted && (isFromDecodePage || (artistId && user.id === artistId));
+  const shouldShowStyleCodes = user && !isAlreadyPosted && (isFromDecodePage || (currentArtistId && user.id === currentArtistId));
 
   const postButtonContent = getPostButtonContent();
   const postButtonStyle = getPostButtonStyle();
@@ -655,7 +703,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   )}
 
                   {/* Delete Button - NEW */}
-                  {canDeletePost && (
+                  {canDeletePost && postIdParam && (
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
                       className="p-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
@@ -691,7 +739,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
               {/* Analysis Title */}
               <h1 className="text-2xl lg:text-3xl font-light text-[#8FB3A8] mb-2">
-                {currentAnalysis.title}
+                {currentAnalysisData.title}
               </h1>
               
               {/* Analysis Style - Clickable */}
@@ -700,7 +748,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 className="text-[#8FB3A8] font-mono text-sm leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-2 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                 tabIndex={0}
                 role="button"
-                aria-label={`Explore ${currentAnalysis.style} style gallery`}
+                aria-label={`Explore ${currentAnalysisData.style} style gallery`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -708,18 +756,18 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   }
                 }}
               >
-                {currentAnalysis.style}
+                {currentAnalysisData.style}
               </p>
 
               {/* Artist Username Display - Removed User Icon */}
-              {artistUsername && artistId && (
+              {currentArtistUsername && currentArtistId && (
                 <button
                   onClick={handleViewArtistProfile}
                   className="flex items-center space-x-2 font-mono text-sm cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                   style={{ color: '#5F6BBB' }}
-                  aria-label={`View ${artistUsername}'s profile`}
+                  aria-label={`View ${currentArtistUsername}'s profile`}
                 >
-                  <span>{artistUsername}</span>
+                  <span>{currentArtistUsername}</span>
                 </button>
               )}
 
@@ -790,7 +838,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               <div className="mb-4">
                 <h2 className="sr-only">Key style tokens</h2>
                 <div className="flex flex-wrap gap-1">
-                  {currentAnalysis.keyTokens.map((token, index) => (
+                  {currentAnalysisData.keyTokens.map((token, index) => (
                     <button
                       key={index}
                       onClick={() => handleKeyTokenClick(token)}
@@ -812,7 +860,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   {renderModuleTabs(TOP_MODULES, activeTopModule, setActiveTopModule)}
                   <div className="p-3 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
-                      currentPrompt={currentAnalysis[getActiveModule(TOP_MODULES, activeTopModule).promptKey][currentPromptIndices[activeTopModule]] as string}
+                      currentPrompt={currentAnalysisData[getActiveModule(TOP_MODULES, activeTopModule).promptKey][currentPromptIndices[activeTopModule]] as string}
                       moduleColor={getActiveModule(TOP_MODULES, activeTopModule).color}
                       onTextClick={handleModulePromptClick}
                     />
@@ -824,7 +872,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   {renderModuleTabs(BOTTOM_MODULES, activeBottomModule, setActiveBottomModule)}
                   <div className="p-3 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
-                      currentPrompt={currentAnalysis[getActiveModule(BOTTOM_MODULES, activeBottomModule).promptKey][currentPromptIndices[activeBottomModule]] as string}
+                      currentPrompt={currentAnalysisData[getActiveModule(BOTTOM_MODULES, activeBottomModule).promptKey][currentPromptIndices[activeBottomModule]] as string}
                       moduleColor={getActiveModule(BOTTOM_MODULES, activeBottomModule).color}
                       onTextClick={handleModulePromptClick}
                     />
@@ -863,7 +911,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 </button>
                 
                 <button
-                  onClick={handleDeletePost}
+                  onClick={() => currentPostId && handleDeletePost(currentPostId)} // Pass postId to handler
                   disabled={isDeleting}
                   className="flex-1 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 rounded-lg border border-red-500/30 text-red-400 hover:text-red-300 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
