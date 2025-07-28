@@ -606,15 +606,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       {/* Mobile Layout: Flex Column, Desktop Layout: Flex Row */}
       <div className="flex flex-col lg:flex-row h-[calc(100vh-4rem)]">
         {/* Media Display Section */}
-        <section className="w-full lg:w-2/3 h-auto lg:h-full p-4 flex items-center justify-center relative" aria-label="Media display">
+        <section className="w-full lg:w-3/5 h-auto lg:h-full p-4 flex items-center justify-center relative" aria-label="Media display">
           {renderMedia()}
         </section>
 
         {/* Control Deck Section */}
-        <aside className="w-full lg:w-1/3 flex flex-col max-h-[60vh] lg:max-h-full" aria-label="Analysis controls and information">
+        <aside className="w-full lg:w-2/5 flex flex-col max-h-[60vh] lg:max-h-full" aria-label="Analysis controls and information">
           {/* Scrollable Content Area */}
           <div className="flex-1 overflow-y-auto">
-            <div className="bg-black/50 backdrop-blur-md shadow-inner relative p-4 rounded-2xl">
+            <div className="bg-black/50 backdrop-blur-md shadow-inner relative p-6 rounded-2xl">
               {/* Header within Control Deck */}
               <header className="flex items-center justify-between mb-4">
                 <button
@@ -690,14 +690,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               )}
 
               {/* Analysis Title */}
-              <h1 className="text-2xl lg:text-3xl font-light text-[#8FB3A8] mb-2">
+              <h1 className="text-3xl lg:text-4xl font-light text-[#8FB3A8] mb-3">
                 {currentAnalysis.title}
               </h1>
               
               {/* Analysis Style - Clickable */}
               <p
                 onClick={handleStyleClick}
-                className="text-[#8FB3A8] font-mono text-sm leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-2 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                className="text-[#8FB3A8] font-mono text-base leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-3 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                 tabIndex={0}
                 role="button"
                 aria-label={`Explore ${currentAnalysis.style} style gallery`}
@@ -715,7 +715,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {artistUsername && artistId && (
                 <button
                   onClick={handleViewArtistProfile}
-                  className="flex items-center space-x-2 font-mono text-sm cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+                  className="flex items-center space-x-2 font-mono text-base cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                   style={{ color: '#5F6BBB' }}
                   aria-label={`View ${artistUsername}'s profile`}
                 >
@@ -727,8 +727,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               <textarea
                 value={editablePrompt}
                 onChange={(e) => setEditablePrompt(e.target.value)}
-                className="w-full bg-white/5 rounded-xl p-3 text-improved-contrast text-sm font-mono leading-relaxed resize-none border-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/10 transition-colors mb-4"
-                rows={3}
+                className="w-full bg-white/5 rounded-xl p-4 text-improved-contrast text-base font-mono leading-relaxed resize-none border-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white/10 transition-colors mb-4"
+                rows={4}
                 placeholder="Edit your prompt here..."
                 aria-label="Editable prompt text"
               />
@@ -736,7 +736,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {/* NEW: Style Codes Input - Conditional visibility */}
               {shouldShowStyleCodes && (
                 <div className="mb-4">
-                  <label htmlFor="style-codes" className="block text-[#D4B896] text-xs font-medium mb-2">
+                  <label htmlFor="style-codes" className="block text-[#D4B896] text-sm font-medium mb-2">
                     Style Codes
                   </label>
                   <input
@@ -744,7 +744,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                     type="text"
                     value={styleCodes}
                     onChange={(e) => setStyleCodes(e.target.value)}
-                    className="w-full bg-black/30 rounded-lg p-3 text-improved-contrast text-sm font-mono leading-relaxed border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-black/40 transition-all duration-300 placeholder-gray-400"
+                    className="w-full bg-black/30 rounded-lg p-4 text-improved-contrast text-base font-mono leading-relaxed border border-white/10 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 focus:bg-black/40 transition-all duration-300 placeholder-gray-400"
                     placeholder="--sref --profile --moodboard"
                   />
                 </div>
@@ -753,7 +753,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {/* NEW: Parsed Style Codes - Only visible when codes are entered */}
               {styleCodes.trim().length > 0 && (
                 <div className="mb-4">
-                  <label className="block text-[#D4B896] text-xs font-medium mb-2">
+                  <label className="block text-[#D4B896] text-sm font-medium mb-2">
                     Parsed Style Codes
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -761,23 +761,23 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                       <button
                         key={index}
                         onClick={() => handleStyleCodeClick(code, index)}
-                        className="group relative px-3 py-2 bg-gradient-to-r from-[#D4B896]/20 to-[#C4A886]/20 border border-[#D4B896]/30 rounded-lg hover:from-[#D4B896]/30 hover:to-[#C4A886]/30 hover:border-[#D4B896]/50 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                        className="group relative px-4 py-2 bg-gradient-to-r from-[#D4B896]/20 to-[#C4A886]/20 border border-[#D4B896]/30 rounded-lg hover:from-[#D4B896]/30 hover:to-[#C4A886]/30 hover:border-[#D4B896]/50 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                         aria-label={`Copy style code: ${code}`}
                         title={copiedCodeIndex === index ? 'Copied!' : 'Click to copy'}
                       >
                         <div className="flex items-center space-x-2">
-                          <span className="text-[#D4B896] text-xs font-mono">
+                          <span className="text-[#D4B896] text-sm font-mono">
                             {code}
                           </span>
                           {copiedCodeIndex === index ? (
-                            <Check className="w-3 h-3 text-green-400" />
+                            <Check className="w-4 h-4 text-green-400" />
                           ) : (
-                            <Copy className="w-3 h-3 text-[#D4B896]/60 group-hover:text-[#D4B896] transition-colors" />
+                            <Copy className="w-4 h-4 text-[#D4B896]/60 group-hover:text-[#D4B896] transition-colors" />
                           )}
                         </div>
                         
                         {/* Tooltip */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-black/90 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                           {copiedCodeIndex === index ? 'Copied!' : 'Click to copy'}
                         </div>
                       </button>
@@ -789,12 +789,12 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               {/* Key Tokens - Smaller spacing on mobile */}
               <div className="mb-4">
                 <h2 className="sr-only">Key style tokens</h2>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {currentAnalysis.keyTokens.map((token, index) => (
                     <button
                       key={index}
                       onClick={() => handleKeyTokenClick(token)}
-                      className="px-2 py-1 bg-black/30 text-[#A3C4B8] text-xs font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+                      className="px-3 py-2 bg-black/30 text-[#A3C4B8] text-sm font-mono rounded-xl hover:opacity-80 transition-opacity cursor-pointer hover:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                       aria-label={`Add token: ${token}`}
                       title={`Click to add "${token}" to prompt`}
                     >
@@ -810,7 +810,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 {/* Top Modules */}
                 <section className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm" aria-label="Primary creative modules">
                   {renderModuleTabs(TOP_MODULES, activeTopModule, setActiveTopModule)}
-                  <div className="p-3 bg-black/10 backdrop-blur-xs">
+                  <div className="p-4 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
                       currentPrompt={currentAnalysis[getActiveModule(TOP_MODULES, activeTopModule).promptKey][currentPromptIndices[activeTopModule]] as string}
                       moduleColor={getActiveModule(TOP_MODULES, activeTopModule).color}
@@ -822,7 +822,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 {/* Bottom Modules */}
                 <section className="border border-white/10 rounded-xl overflow-hidden shadow-lg bg-black/20 backdrop-blur-sm" aria-label="Secondary creative modules">
                   {renderModuleTabs(BOTTOM_MODULES, activeBottomModule, setActiveBottomModule)}
-                  <div className="p-3 bg-black/10 backdrop-blur-xs">
+                  <div className="p-4 bg-black/10 backdrop-blur-xs">
                     <AnalysisContent
                       currentPrompt={currentAnalysis[getActiveModule(BOTTOM_MODULES, activeBottomModule).promptKey][currentPromptIndices[activeBottomModule]] as string}
                       moduleColor={getActiveModule(BOTTOM_MODULES, activeBottomModule).color}

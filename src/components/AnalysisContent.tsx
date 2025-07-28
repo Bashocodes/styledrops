@@ -36,7 +36,7 @@ export const AnalysisContent: React.FC<AnalysisContentProps> = ({
       <div className="group relative bg-black/20 backdrop-blur-sm rounded-lg border border-white/5 hover:border-white/10 transition-all duration-300">
         <div className="flex items-start justify-between gap-3 p-3">
           <p 
-            className="text-improved-contrast text-xs font-mono cursor-pointer hover:text-white transition-colors flex-1 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+            className="text-improved-contrast text-sm font-mono cursor-pointer hover:text-white transition-colors flex-1 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
             onClick={() => handleTextClick(currentPrompt)}
             tabIndex={0}
             role="button"
