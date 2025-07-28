@@ -18,7 +18,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ onBack, onPo
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const { styleName } = useParams<{ styleName: string }>(); // Get styleName from URL params
+  const { styleName } = useParams<{ styleName: string }>();
 
   const loadPosts = useCallback(async (reset: boolean = false) => {
     try {
@@ -31,7 +31,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ onBack, onPo
 
       const offset = reset ? 0 : posts.length;
       
-      if (!styleName) { // Handle case where styleName might be undefined from URL
+      if (!styleName) {
         setError('Style name not found in URL.');
         return;
       }

@@ -23,10 +23,10 @@ interface GlassmorphicHeaderProps {
 }
 
 export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
-  onDecodeClick,
-  onLogoClick,
+  // onDecodeClick,
+  // onLogoClick,
   // ... existing props
-  onProfileClick,
+  // onProfileClick,
   signInError,
   onDismissSignInError
 }) => {
@@ -284,8 +284,8 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             <button
               onClick={() => { // Use navigate directly here
                 navigate('/decode');
-                setIsMobileMenuOpen(false); // Close menu after click
                 addBreadcrumb('Decode button clicked (mobile)', 'ui');
+                setIsMobileMenuOpen(false); // Close menu after click
               }}
               className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
               aria-label="Decode media - analyze your images, videos, or audio"

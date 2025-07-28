@@ -25,11 +25,6 @@ function App() {
   const [currentThumbnailFile, setCurrentThumbnailFile] = React.useState<File | null>(null);
   
   const [isAnalysisFromDecode, setIsAnalysisFromDecode] = React.useState(false);
-  const [selectedStyle, setSelectedStyle] = React.useState<string>('');
-  const [currentArtistId, setCurrentArtistId] = React.useState<string | undefined>(undefined);
-  const [currentArtistUsername, setCurrentArtistUsername] = React.useState<string | undefined>(undefined);
-  const [viewingArtistId, setViewingArtistId] = React.useState<string | undefined>(undefined);
-  const [currentPostId, setCurrentPostId] = React.useState<string | undefined>(undefined);
 
   const handleSentryTest = () => {
     addBreadcrumb('User clicked Sentry test button', 'ui');
@@ -58,16 +53,12 @@ function App() {
       hasThumbnail: !!thumbnailFile 
     });
     
-    setCurrentArtistId(undefined);
-    setCurrentArtistUsername(undefined);
-    
     setCurrentAnalysis(analysis);
     setCurrentMediaUrl(mediaUrl);
     setCurrentMediaType(mediaType);
     setCurrentMediaFile(file);
     setCurrentThumbnailFile(thumbnailFile || null);
     setIsAnalysisFromDecode(true);
-    setCurrentPostId(undefined);
     navigate('/analysis/new'); // Use a temporary ID for new analysis
     
     console.log('Decode success - setting analysis from decode:', {
@@ -77,46 +68,20 @@ function App() {
     });
   };
 
-  const handleBackFromDecode = () => {
-    addBreadcrumb('Back from decode page', 'ui');
-    navigate('/');
-  };
-
-  const handleBackFromGallery = () => {
-    addBreadcrumb('Back from gallery page', 'ui');
-    navigate('/');
-  };
-
   const handleBackFromAnalysis = () => {
     addBreadcrumb('Back from analysis page', 'ui');
     setIsAnalysisFromDecode(false);
-    setCurrentArtistId(undefined);
-    setCurrentArtistUsername(undefined);
-    setCurrentPostId(undefined);
     navigate('/');
   };
 
   const handleViewStyleGallery = (style: string) => {
     addBreadcrumb('View style gallery clicked', 'ui', { style });
-    setSelectedStyle(style);
     navigate(`/style/${encodeURIComponent(style)}`);
-  };
-
-  const handleBackFromStyleGallery = () => {
-    addBreadcrumb('Back from style gallery', 'ui');
-    navigate(-1); // Go back to previous page (analysis or gallery)
   };
 
   const handleViewArtistProfileFromApp = (artistId: string) => {
     addBreadcrumb('View artist profile clicked', 'ui', { artistId });
-    setViewingArtistId(artistId);
     navigate(`/artist/${artistId}`);
-  };
-
-  const handleBackFromArtistProfile = () => {
-    addBreadcrumb('Back from artist profile', 'ui');
-    setViewingArtistId(undefined);
-    navigate(-1); // Go back to previous page (analysis or gallery)
   };
 
   const handleProfileSettingsClick = () => {
@@ -124,15 +89,9 @@ function App() {
     navigate('/profile-settings');
   };
 
-  const handleBackFromProfileSettings = () => {
-    addBreadcrumb('Back from profile settings', 'ui');
-    navigate('/');
-  };
-
   const handlePostDeleted = () => {
     addBreadcrumb('Post deleted successfully', 'ui', { postId: currentPostId });
     navigate('/');
-    setCurrentPostId(undefined);
   };
 
   // Log component mount
@@ -181,25 +140,17 @@ function App() {
       <Routes>
         <Route path="/" element={
           <GalleryView
-            onBack={handleBackFromGallery}
             onPostClick={(post) => navigate(`/analysis/${post.id}`)} // Navigate to analysis page with post ID
           />
         } />
         <Route path="/decode" element={
           <DecodePage
             onDecodeSuccess={handleDecodeSuccess}
-            onBack={handleBackFromDecode}
+            onBack={() => navigate('/')}
           />
         } />
         <Route path="/analysis/:postId" element={
           <AnalysisPage
-            // Pass state for new analysis from decode page
-            analysis={isAnalysisFromDecode ? currentAnalysis : undefined}
-            mediaUrl={isAnalysisFromDecode ? currentMediaUrl : undefined}
-            mediaType={isAnalysisFromDecode ? currentMediaType : undefined}
-            selectedMediaFile={isAnalysisFromDecode ? currentMediaFile : undefined}
-            thumbnailFile={isAnalysisFromDecode ? currentThumbnailFile : undefined}
-            isFromDecodePage={isAnalysisFromDecode}
             onBack={handleBackFromAnalysis}
             onViewStyleGallery={handleViewStyleGallery}
             onViewArtistProfile={handleViewArtistProfileFromApp}
@@ -222,18 +173,17 @@ function App() {
         } />
         <Route path="/style/:styleName" element={
           <StyleGalleryPage
-            onBack={handleBackFromStyleGallery}
+            onBack={() => navigate(-1)}
             onPostClick={(post) => navigate(`/analysis/${post.id}`)}
           />
         } />
         <Route path="/artist/:artistId" element={
           <GalleryView
-            onBack={handleBackFromArtistProfile}
             onPostClick={(post) => navigate(`/analysis/${post.id}`)}
           />
         } />
         <Route path="/profile-settings" element={
-          <ProfileSettingsPage onBack={handleBackFromProfileSettings} />
+          <ProfileSettingsPage onBack={() => navigate('/')} />
         } />
         {/* Default fallback for unknown routes */}
         <Route path="*" element={

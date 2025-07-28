@@ -5,12 +5,10 @@ import { addBreadcrumb, captureError } from '../lib/sentry';
 import { useParams } from 'react-router-dom';
 
 interface GalleryViewProps {
-  onBack: () => void;
   onPostClick: (post: Post) => void;
 }
 
 export const GalleryView: React.FC<GalleryViewProps> = ({ 
-  onBack, 
   onPostClick, 
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -23,7 +21,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInputValue, setSearchInputValue] = useState('');
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const { artistId } = useParams<{ artistId: string }>(); // Get artistId from URL params
+  const { artistId } = useParams<{ artistId: string }>();
 
   // Debounce search query to avoid excessive API calls
   useEffect(() => {
@@ -45,16 +43,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
       const offset = reset ? 0 : posts.length;
       
-      // NEW: Use different fetch function based on whether we're viewing an artist's profile
+      // Use different fetch function based on whether we're viewing an artist's profile
       let result;
-      let artistUsername: string | undefined; // Need to fetch username if artistId is present
       if (artistId) {
-        // In a real app, you'd fetch the artist's username here based on artistId
-        // For now, we'll just use a placeholder or assume it's passed if needed
-        // Or, if the profile table has a username, you could fetch it.
-        // For simplicity, we'll just use the ID for now.
-        // If you need the username, you'd add a getUserProfile(artistId) call here.
-        artistUsername = artistId; // Placeholder
         result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType, searchQuery);
       } else {
         result = await getPosts(sortOrder, 12, offset, selectedMediaType, searchQuery);
@@ -71,7 +62,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       setHasMore(moreAvailable);
       addBreadcrumb('Posts loaded', 'ui', { 
         count: newPosts.length, 
-        artistUsername,
         hasMore: moreAvailable,
         isArtistProfile: !!artistId,
         artistId,
@@ -292,18 +282,18 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
   // NEW: Get the appropriate title for the gallery
   const getGalleryTitle = () => {
-    if (artistUsername) {
-      return `${artistUsername}'s Gallery`;
+    if (artistId) {
+      return `Artist Gallery`;
     }
     return 'Gallery';
   };
 
   // NEW: Get the appropriate empty state message
   const getEmptyStateMessage = () => {
-    if (artistUsername) {
+    if (artistId) {
       return {
         title: `No creations yet`,
-        subtitle: `${artistUsername} hasn't shared any creations yet.`,
+        subtitle: `This artist hasn't shared any creations yet.`,
         buttonText: 'Explore Other Artists'
       };
     }
@@ -415,7 +405,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-[#B8A082] animate-spin mx-auto mb-4" />
                 <p className="text-improved-contrast text-lg">
-                  {artistUsername ? `Loading ${artistUsername}'s creations...` : 'Loading styles...'}
+                  {artistId ? `Loading artist's creations...` : 'Loading styles...'}
                 </p>
               </div>
             </div>
@@ -444,7 +434,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 <p className="text-improved-muted text-lg mb-2">{getEmptyStateMessage().title}</p>
                 <p className="text-gray-400 text-sm mb-4">{getEmptyStateMessage().subtitle}</p>
                 <button
-                  onClick={searchQuery.trim() ? handleClearSearch : onBack}
+                  onClick={searchQuery.trim() ? handleClearSearch : () => window.history.back()}
                   className="px-6 py-2 bg-[#D4B896] hover:bg-[#C4A886] text-[#1a1a1a] rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   {getEmptyStateMessage().buttonText}
@@ -502,8 +492,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   </div>
                 ) : !hasMore ? (
                   <span className="text-gray-400 text-sm">
-                    {artistUsername 
-                      ? `You've seen all of ${artistUsername}'s creations` 
+                    {artistId 
+                      ? `You've seen all of this artist's creations` 
                       : "You've reached the end"
                     }
                   </span>
@@ -512,7 +502,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
             </>
           )}
         </section>
-          </div>
       </div>
     </main>
   );

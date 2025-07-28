@@ -14,7 +14,6 @@ interface AnalysisPageProps {
   mediaType?: 'image' | 'video' | 'audio';
   artistUsername?: string;
   artistId?: string;
-  // postId?: string; // Removed as it comes from URL params
   onBack: () => void;
   onTextClick?: (text: string) => void;
   isTextOnlyAnalysis?: boolean;
@@ -23,7 +22,7 @@ interface AnalysisPageProps {
   onViewArtistProfile?: (artistId: string) => void;
   isFromDecodePage?: boolean;
   onViewStyleGallery?: (style: string) => void;
-  onPostDeleted?: () => void; // NEW: Callback for when post is deleted
+  onPostDeleted?: () => void;
 }
 
 export const AnalysisPage: React.FC<AnalysisPageProps> = ({
@@ -32,16 +31,15 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   mediaType,
   artistUsername,
   artistId,
-  postId, // NEW: Post ID prop
   onBack,
   onTextClick,
   isTextOnlyAnalysis = false,
   selectedMediaFile,
   thumbnailFile,
   onViewArtistProfile,
-  isFromDecodePage, // No default value, will be passed from App.tsx
+  isFromDecodePage = false,
   onViewStyleGallery,
-  onPostDeleted // NEW: Post deletion callback
+  onPostDeleted
 }) => {
   const { postId: postIdParam } = useParams<{ postId: string }>();
   const { user, loading: authLoading } = useAuth();
@@ -58,7 +56,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   const [fetchError, setFetchError] = useState<string | null>(null);
 
 
-  // NEW: Delete confirmation modal state
+  // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -564,6 +562,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             <React.Fragment key={module.id}>
               <button
                 onClick={() => handleTabClick(module.id, setActiveModule)}
+                onClick={() => postIdParam && handleDeletePost(postIdParam)}
                 className={`flex-1 p-3 text-xs font-medium transition-all duration-300 relative overflow-hidden ${
                   isActive
                     ? 'text-white'
@@ -637,10 +636,10 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   // NEW: Check if user can delete this post
-  const canDeletePost = user && postId && artistId && user.id === artistId;
+  const canDeletePost = user && postIdParam && currentArtistId && user.id === currentArtistId;
 
   // NEW: Check if style codes input should be visible
-  const shouldShowStyleCodes = user && !isAlreadyPosted && (isFromDecodePage || (artistId && user.id === artistId));
+  const shouldShowStyleCodes = user && !isAlreadyPosted && (isFromDecodePage || (currentArtistId && user.id === currentArtistId));
 
   const postButtonContent = getPostButtonContent();
   const postButtonStyle = getPostButtonStyle();
@@ -708,7 +707,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   )}
 
                   {/* Delete Button - NEW */}
-                  {canDeletePost && currentPostId && ( // Ensure currentPostId is available
+                  {canDeletePost && postIdParam && (
                     <button
                       onClick={() => setShowDeleteConfirm(true)}
                       className="p-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 transition-all duration-300 text-red-400 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
