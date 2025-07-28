@@ -2,14 +2,19 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Image, Video, Music, Search, X } from 'lucide-react';
 import { getPosts, getPostsByUserId, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
-import { useParams } from 'react-router-dom';
 
 interface GalleryViewProps {
+  onBack: () => void;
   onPostClick: (post: Post) => void;
+  artistId?: string; // NEW: Optional artist ID to filter posts
+  artistUsername?: string; // NEW: Optional artist username for display
 }
 
 export const GalleryView: React.FC<GalleryViewProps> = ({ 
+  onBack, 
   onPostClick, 
+  artistId, 
+  artistUsername 
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +26,6 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchInputValue, setSearchInputValue] = useState('');
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const { artistId } = useParams<{ artistId: string }>();
 
   // Debounce search query to avoid excessive API calls
   useEffect(() => {
@@ -43,7 +47,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
       const offset = reset ? 0 : posts.length;
       
-      // Use different fetch function based on whether we're viewing an artist's profile
+      // NEW: Use different fetch function based on whether we're viewing an artist's profile
       let result;
       if (artistId) {
         result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType, searchQuery);
@@ -282,18 +286,18 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
   // NEW: Get the appropriate title for the gallery
   const getGalleryTitle = () => {
-    if (artistId) {
-      return `Artist Gallery`;
+    if (artistUsername) {
+      return `${artistUsername}'s Gallery`;
     }
     return 'Gallery';
   };
 
   // NEW: Get the appropriate empty state message
   const getEmptyStateMessage = () => {
-    if (artistId) {
+    if (artistUsername) {
       return {
         title: `No creations yet`,
-        subtitle: `This artist hasn't shared any creations yet.`,
+        subtitle: `${artistUsername} hasn't shared any creations yet.`,
         buttonText: 'Explore Other Artists'
       };
     }
@@ -405,7 +409,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-[#B8A082] animate-spin mx-auto mb-4" />
                 <p className="text-improved-contrast text-lg">
-                  {artistId ? `Loading artist's creations...` : 'Loading styles...'}
+                  {artistUsername ? `Loading ${artistUsername}'s creations...` : 'Loading styles...'}
                 </p>
               </div>
             </div>
@@ -434,7 +438,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 <p className="text-improved-muted text-lg mb-2">{getEmptyStateMessage().title}</p>
                 <p className="text-gray-400 text-sm mb-4">{getEmptyStateMessage().subtitle}</p>
                 <button
-                  onClick={searchQuery.trim() ? handleClearSearch : () => window.history.back()}
+                  onClick={searchQuery.trim() ? handleClearSearch : onBack}
                   className="px-6 py-2 bg-[#D4B896] hover:bg-[#C4A886] text-[#1a1a1a] rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
                 >
                   {getEmptyStateMessage().buttonText}
@@ -492,8 +496,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   </div>
                 ) : !hasMore ? (
                   <span className="text-gray-400 text-sm">
-                    {artistId 
-                      ? `You've seen all of this artist's creations` 
+                    {artistUsername 
+                      ? `You've seen all of ${artistUsername}'s creations` 
                       : "You've reached the end"
                     }
                   </span>

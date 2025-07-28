@@ -626,39 +626,6 @@ export const getPostsByStyle = async (
   }
 };
 
-// NEW: Get a single post by its ID
-export const getPostById = async (postId: string): Promise<Post | null> => {
-  try {
-    addBreadcrumb('Fetching single post by ID', 'database', { postId });
-
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('id', postId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') { // No rows found
-        console.warn('Post not found:', postId);
-        return null;
-      }
-      console.error('Error fetching single post:', error);
-      captureError(new Error(error.message), {
-        context: 'getPostById',
-        postId,
-        errorCode: error.code
-      });
-      throw error;
-    }
-
-    addBreadcrumb('Single post fetched successfully', 'database', { postId });
-    return data;
-  } catch (error) {
-    captureError(error as Error, { context: 'getPostById' });
-    return null;
-  }
-};
-
 export const checkIfAnalysisIsPosted = async (analysisId: string): Promise<boolean> => {
   try {
     console.log('DEBUG: checkIfAnalysisIsPosted called', {
