@@ -151,6 +151,12 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       currentAnalysisData.id.length > 0 &&
       currentAnalysisData.id !== 'temp-id';
   }, [currentAnalysisData]);
+
+  // Fetch post data if not from decode page
+  useEffect(() => {
+    const loadPost = async () => {
+      if (postIdParam && !isFromDecodePage) {
+        setFetchingPost(true);
         setFetchError(null);
         try {
           const post = await getPostById(postIdParam);
@@ -742,7 +748,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                 className="text-[#8FB3A8] font-mono text-sm leading-relaxed cursor-pointer hover:text-[#A3C4B8] mb-2 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                 tabIndex={0}
                 role="button"
-                aria-label={`Explore ${currentAnalysis.style} style gallery`}
+                aria-label={`Explore ${currentAnalysisData.style} style gallery`}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
@@ -759,7 +765,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
                   onClick={handleViewArtistProfile}
                   className="flex items-center space-x-2 font-mono text-sm cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
                   style={{ color: '#5F6BBB' }}
-                  aria-label={`View ${artistUsername}'s profile`}
+                  aria-label={`View ${currentArtistUsername}'s profile`}
                 >
                   <span>{currentArtistUsername}</span>
                 </button>
