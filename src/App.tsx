@@ -15,7 +15,7 @@ import { GlassmorphicHeader } from './components/GlassmorphicHeader';
 type ViewState = 'analysis' | 'decodeUpload' | 'gallery' | 'styleGallery' | 'artistProfile' | 'profileSettings';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, signInWithGoogle } = useAuth();
   const [signInError, setSignInError] = React.useState<string | null>(null);
   const [currentView, setCurrentView] = React.useState<ViewState>('gallery');
   
