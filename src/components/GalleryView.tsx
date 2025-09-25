@@ -1,20 +1,20 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Image, Video, Music, Search, X } from 'lucide-react';
-import { getPosts, getPostsByUserId, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
+import { getPosts, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 
 interface GalleryViewProps {
   onBack: () => void;
   onPostClick: (post: Post) => void;
-  artistId?: string; // NEW: Optional artist ID to filter posts
-  artistUsername?: string; // NEW: Optional artist username for display
+  // artistId?: string; // Removed artist filtering
+  // artistUsername?: string; // Removed artist filtering
 }
 
 export const GalleryView: React.FC<GalleryViewProps> = ({ 
   onBack, 
-  onPostClick, 
-  artistId, 
-  artistUsername 
+  onPostClick
+  // artistId, 
+  // artistUsername 
 }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,13 +47,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
 
       const offset = reset ? 0 : posts.length;
       
-      // NEW: Use different fetch function based on whether we're viewing an artist's profile
-      let result;
-      if (artistId) {
-        result = await getPostsByUserId(artistId, sortOrder, 12, offset, selectedMediaType, searchQuery);
-      } else {
-        result = await getPosts(sortOrder, 12, offset, selectedMediaType, searchQuery);
-      }
+      // Always use getPosts since we removed artist filtering
+      const result = await getPosts(sortOrder, 12, offset, selectedMediaType, searchQuery);
       
       const { posts: newPosts, hasMore: moreAvailable } = result;
 
@@ -67,8 +62,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       addBreadcrumb('Posts loaded', 'ui', { 
         count: newPosts.length, 
         hasMore: moreAvailable,
-        isArtistProfile: !!artistId,
-        artistId,
+        // isArtistProfile: !!artistId,
+        // artistId,
         mediaType: selectedMediaType,
         searchQuery
       });
@@ -77,8 +72,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       setError('Failed to load posts. Please try again.');
       captureError(error as Error, { 
         context: 'loadPosts',
-        isArtistProfile: !!artistId,
-        artistId,
+        // isArtistProfile: !!artistId,
+        // artistId,
         mediaType: selectedMediaType,
         searchQuery
       });
@@ -86,12 +81,12 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [sortOrder, selectedMediaType, posts.length, artistId, searchQuery]);
+  }, [sortOrder, selectedMediaType, posts.length, searchQuery]);
 
-  // Load posts on mount and when sort order, media type, or artist changes
+  // Load posts on mount and when sort order, media type changes
   useEffect(() => {
     loadPosts(true);
-  }, [sortOrder, selectedMediaType, artistId, searchQuery]);
+  }, [sortOrder, selectedMediaType, searchQuery]);
 
   // Infinite scroll
   useEffect(() => {
@@ -115,8 +110,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     addBreadcrumb('Sort order changed', 'ui', { 
       from: sortOrder, 
       to: newSort,
-      isArtistProfile: !!artistId,
-      artistId,
+      // isArtistProfile: !!artistId,
+      // artistId,
       mediaType: selectedMediaType,
       searchQuery
     });
@@ -127,8 +122,8 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     addBreadcrumb('Media type filter changed', 'ui', { 
       from: selectedMediaType, 
       to: newMediaType,
-      isArtistProfile: !!artistId,
-      artistId,
+      // isArtistProfile: !!artistId,
+      // artistId,
       searchQuery
     });
     setSelectedMediaType(newMediaType);
@@ -138,16 +133,16 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     setSearchInputValue('');
     addBreadcrumb('Search cleared', 'ui', { 
       previousQuery: searchInputValue,
-      isArtistProfile: !!artistId,
-      artistId
+      // isArtistProfile: !!artistId,
+      // artistId
     });
   };
   
   const handlePostClick = (post: Post) => {
     addBreadcrumb('Gallery post clicked', 'ui', { 
       postId: post.id,
-      isArtistProfile: !!artistId,
-      artistId,
+      // isArtistProfile: !!artistId,
+      // artistId,
       mediaType: post.media_type,
       searchQuery
     });
@@ -182,7 +177,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
       originalUrl: post.media_url,
       validatedUrl: validatedUrl,
       mediaType: post.media_type,
-      isArtistProfile: !!artistId
+      // isArtistProfile: !!artistId
     });
 
     switch (post.media_type) {
@@ -284,29 +279,13 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
     }
   };
 
-  // NEW: Get the appropriate title for the gallery
-  const getGalleryTitle = () => {
-    if (artistUsername) {
-      return `${artistUsername}'s Gallery`;
-    }
-    return 'Gallery';
-  };
-
-  // NEW: Get the appropriate empty state message
-  const getEmptyStateMessage = () => {
-    if (artistUsername) {
-      return {
-        title: `No creations yet`,
-        subtitle: `${artistUsername} hasn't shared any creations yet.`,
-        buttonText: 'Explore Other Artists'
-      };
-    }
-    return {
-      title: 'No styles yet',
-      subtitle: 'Be the first to share your creative analysis!',
-      buttonText: 'Start Creating'
-    };
-  };
+  // Simplified gallery title and empty state
+  const getGalleryTitle = () => 'Gallery';
+  const getEmptyStateMessage = () => ({
+    title: 'No styles yet',
+    subtitle: 'Upload and analyze media to see results here!',
+    buttonText: 'Start Creating'
+  });
 
   return (
     <main id="main-content" className="pt-20 min-h-screen bg-[#1a1a1a]" tabIndex={-1}>
@@ -381,27 +360,9 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                 )}
               </div>
             </div>
-            {/* Powered by Bolt Tag - Moved to the right of the dropdown */}
-            <div className="flex items-center space-x-2">
-              <img 
-                src="/logotext_poweredby_360w (1) copy.png" 
-                alt="Powered by Bolt" 
-                className="h-4 w-auto object-contain opacity-60"
-                onError={(e) => {
-                  // Hide the image if it fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  console.warn('Powered by Bolt image failed to load');
-                }}
-                onLoad={() => {
-                  console.log('Powered by Bolt image loaded successfully');
-                }}
-              />
-            </div>
           </div>
         </header>
-          {/* Right Section - Sort and Powered by Bolt */}
-          <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+
         {/* Content */}
         <section className="p-4" aria-label="Gallery content">
           {loading && posts.length === 0 ? (
@@ -409,7 +370,7 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-[#B8A082] animate-spin mx-auto mb-4" />
                 <p className="text-improved-contrast text-lg">
-                  {artistUsername ? `Loading ${artistUsername}'s creations...` : 'Loading styles...'}
+                  Loading styles...
                 </p>
               </div>
             </div>
@@ -496,17 +457,13 @@ export const GalleryView: React.FC<GalleryViewProps> = ({
                   </div>
                 ) : !hasMore ? (
                   <span className="text-gray-400 text-sm">
-                    {artistUsername 
-                      ? `You've seen all of ${artistUsername}'s creations` 
-                      : "You've reached the end"
-                    }
+                    You've reached the end
                   </span>
                 ) : null}
               </div>
             </>
           )}
         </section>
-          </div>
       </div>
     </main>
   );

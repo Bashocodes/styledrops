@@ -1,79 +1,46 @@
 import React, { useState } from 'react';
 import { 
   Code, 
-  LogIn, 
-  LogOut, 
-  User, 
-  Loader2, 
+  // LogIn, 
+  // LogOut, 
+  // User, 
+  // Loader2, 
   Menu, // Import Menu icon
   X, // Import X icon
-  AlertCircle,
-  Settings
+  // AlertCircle,
+  // Settings
 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
+// import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 
 interface GlassmorphicHeaderProps {
   onDecodeClick: () => void;
   onLogoClick?: () => void;
-  onProfileClick: () => void;
-  signInError: string | null;
-  onDismissSignInError: () => void;
+  // onProfileClick: () => void;
+  // signInError: string | null;
+  // onDismissSignInError: () => void;
 }
 
 export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
   onDecodeClick,
   onLogoClick,
-  // ... existing props
-  onProfileClick,
-  signInError,
-  onDismissSignInError
+  // onProfileClick,
+  // signInError,
+  // onDismissSignInError
 }) => {
-  const { user, loading, signInWithGoogle, signOut } = useAuth();
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  // const { user, loading, signInWithGoogle, signOut } = useAuth();
+  // const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // New state for mobile menu
-  const handleGoogleSignIn = async () => {
-    try {
-      addBreadcrumb('User clicked Google sign in button', 'ui');
-      await signInWithGoogle();
-    } catch (error: any) {
-      console.error('Sign in failed:', error);
-      captureError(error, { 
-        context: 'handleGoogleSignIn',
-        userAgent: navigator.userAgent,
-        url: window.location.href
-      });
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      addBreadcrumb('User clicked sign out button', 'ui');
-      await signOut();
-      setShowProfileMenu(false);
-    } catch (error) {
-      console.error('Sign out failed:', error);
-      captureError(error as Error, { context: 'handleSignOut' });
-    }
-  };
+  
+  // Removed authentication handlers
 
   const handleLogoClick = () => {
     addBreadcrumb('Logo clicked', 'ui');
     onLogoClick?.();
   };
 
-  const handleAccountClick = () => {
-    addBreadcrumb('Account settings clicked', 'ui');
-    setShowProfileMenu(false);
-    onProfileClick();
-  };
-
-  // Get display name with priority: username > full_name > email prefix
-  const getDisplayName = () => {
-    if (!user) return 'User';
-    return user.username || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
-  };
+  // Removed account handlers
 
   return (
     <>
@@ -91,33 +58,10 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
         Skip to main content
       </a>
 
-      {/* Error Banner */}
-      {signInError && (
-        <div className="fixed top-0 left-0 right-0 z-50 bg-red-500/10 border-b border-red-500/20 backdrop-blur-sm">
-          <div className="max-w-7xl mx-auto px-6 py-3">
-            <div className="flex items-center space-x-3">
-              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-sm text-red-200">
-                  <span className="font-medium">Sign-in Error:</span> {signInError}
-                </p>
-              </div>
-              <button 
-                onClick={() => {
-                  onDismissSignInError();
-                  addBreadcrumb('User dismissed error banner', 'ui');
-                }}
-                className="text-red-300 hover:text-red-200 transition-colors"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Removed error banner */}
 
       {/* Glassmorphic Header */}
-      <header className={`fixed left-1 right-1 z-40 ${signInError ? 'top-16' : 'top-1'}`}>
+      <header className="fixed left-1 right-1 z-40 top-1">
         <div className="bg-black/50 backdrop-blur-xl border border-black/50 rounded-full shadow-2xl h-14 flex items-center justify-between px-4 lg:px-6">
           {/* Left Section - Logo */}
           <div className="flex-1 flex items-center justify-start">
@@ -153,121 +97,23 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Center Section - Decode Button */}
             <button
               onClick={() => {
-                if (user) {
-                  onDecodeClick();
-                }
+                onDecodeClick();
                 addBreadcrumb('Decode button clicked', 'ui');
               }}
-              disabled={!user}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                user 
-                  ? 'hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] cursor-pointer' 
-                  : 'text-[#C78D4E]/50 cursor-not-allowed'
-              }`}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] cursor-pointer"
               aria-label="Decode media - analyze your images, videos, or audio"
               tabIndex={0}
             >
               <Code size={16} />
               <span className="hidden sm:block">
-                {user ? 'Decode Media' : 'Sign in to Decode'}
+                Decode Media
               </span>
             </button>
           </div>
 
-          {/* Desktop User Authentication (hidden on small screens) */}
+          {/* Removed desktop authentication section */}
           <div className="hidden lg:flex flex-1 items-center justify-end">
-            <div className="flex items-center gap-4">
-              {/* Authentication Section */}
-              {loading ? (
-                /* Loading State */
-                <div className="flex items-center gap-2 px-4 py-1.5 rounded-2xl bg-black/50 text-white/50 font-mono tracking-wide">
-                  <Loader2 className="animate-spin w-4 h-4" />
-                  <span className="hidden sm:block">Loading...</span>
-                </div>
-              ) : user ? (
-                /* Signed In State */
-                <div 
-                  className="relative"
-                  onMouseEnter={() => setShowProfileMenu(true)}
-                  onMouseLeave={() => setShowProfileMenu(false)}
-                >
-                  <button 
-                    className="w-10 h-10 rounded-full bg-black/50 hover:bg-black/60 transition-colors flex items-center justify-center text-[#7C9A92] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                    aria-label={`User menu for ${getDisplayName()}`}
-                    aria-expanded={showProfileMenu}
-                    aria-haspopup="true"
-                    tabIndex={0}
-                  >
-                    {user.user_metadata?.avatar_url ? (
-                      <img 
-                        src={user.user_metadata.avatar_url}
-                        alt="Profile" 
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <User size={18} />
-                    )}
-                  </button>
-
-                  {/* Profile Dropdown Menu */}
-                  {showProfileMenu && (
-                    <div 
-                      className="absolute top-12 right-0 bg-black/80 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl py-2 min-w-[160px] z-50"
-                      role="menu"
-                      aria-label="User menu"
-                    >
-                      {/* User Info */}
-                      <div className="px-4 py-2 border-b border-white/10">
-                        <p className="text-improved-contrast text-sm font-medium">
-                          {getDisplayName()}
-                        </p>
-                        <p className="text-improved-muted text-xs">
-                          {user.email}
-                        </p>
-                        {user.username && (
-                          <p className="text-purple-400 text-xs font-mono">
-                            @{user.username}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Account Settings */}
-                      <button
-                        onClick={handleAccountClick}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-improved-contrast hover:text-white hover:bg-white/10 transition-colors text-sm focus:outline-none focus:bg-white/10"
-                        role="menuitem"
-                        tabIndex={0}
-                      >
-                        <Settings size={16} />
-                        <span>Account</span>
-                      </button>
-
-                      {/* Sign Out */}
-                      <button
-                        onClick={handleSignOut}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-sm focus:outline-none focus:bg-red-500/10"
-                        role="menuitem"
-                        tabIndex={0}
-                      >
-                        <LogOut size={16} />
-                        <span>Sign Out</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Signed Out State */
-                <button
-                  onClick={handleGoogleSignIn}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide bg-black/50 hover:bg-black/60 text-[#B8A082] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                  aria-label="Sign in with Google to access all features"
-                  tabIndex={0}
-                >
-                  <LogIn size={16} />
-                  <span className="hidden sm:block">Sign in with Google</span>
-                </button>
-              )}
-            </div>
+            {/* Empty space for balance */}
           </div>
         </div>
       </header>
@@ -290,80 +136,19 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Decode Button for Mobile */}
             <button
               onClick={() => {
-                if (user) {
-                  onDecodeClick();
-                }
+                onDecodeClick();
                 setIsMobileMenuOpen(false); // Close menu after click
                 addBreadcrumb('Decode button clicked (mobile)', 'ui');
               }}
-              disabled={!user}
-              className={`flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 ${
-                user 
-                  ? 'text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 cursor-pointer' 
-                  : 'text-[#C78D4E]/50 cursor-not-allowed'
-              }`}
+              className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 cursor-pointer"
               aria-label="Decode media - analyze your images, videos, or audio"
               tabIndex={0}
             >
               <Code size={28} />
-              <span>{user ? 'Decode Media' : 'Sign in to Decode'}</span>
+              <span>Decode Media</span>
             </button>
-
-            {/* User Authentication for Mobile */}
-            {loading ? (
-              <div className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-white/50">
-                <Loader2 className="animate-spin w-6 h-6" />
-                <span>Loading...</span>
-              </div>
-            ) : user ? (
-              <div className="flex flex-col items-center space-y-4">
-                <button
-                  onClick={() => {
-                    handleAccountClick();
-                    setIsMobileMenuOpen(false); // Close menu after click
-                  }}
-                  className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#7C9A92] hover:text-white hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                  aria-label={`Account settings for ${getDisplayName()}`}
-                  tabIndex={0}
-                >
-                  {user.user_metadata?.avatar_url ? (
-                    <img
-                      src={user.user_metadata.avatar_url}
-                      alt="Profile"
-                      className="w-10 h-10 rounded-full"
-                    />
-                  ) : (
-                    <User size={32} />
-                  )}
-                  <span>{getDisplayName()}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    handleSignOut();
-                    setIsMobileMenuOpen(false); // Close menu after click
-                  }}
-                  className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                  aria-label="Sign out"
-                  tabIndex={0}
-                >
-                  <LogOut size={28} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  handleGoogleSignIn();
-                  setIsMobileMenuOpen(false); // Close menu after click
-                }}
-                className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#B8A082] hover:text-[#A69072] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                aria-label="Sign in with Google to access all features"
-                tabIndex={0}
-              >
-                <LogIn size={28} />
-                <span>Sign in with Google</span>
-              </button>
-            )}
+            
+            {/* Removed mobile authentication */}
           </nav>
         </div>
       )}

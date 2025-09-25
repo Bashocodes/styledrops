@@ -1,22 +1,22 @@
 import React from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
-import { useAuth } from './hooks/useAuth';
+import { Loader2 } from 'lucide-react';
+// import { useAuth } from './hooks/useAuth';
 import { captureError, addBreadcrumb } from './lib/sentry';
 import { AnalysisPage } from './pages/AnalysisPage';
 import { DecodePage } from './pages/DecodePage';
 import { StyleGalleryPage } from './pages/StyleGalleryPage';
-import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
-import { LandingPage } from './pages/LandingPage';
+// import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
+// import { LandingPage } from './pages/LandingPage';
 import { GalleryView } from './components/GalleryView';
 import { mockAnalysisResult, AnalysisResult } from './constants/modules';
 import { Post } from './lib/supabaseUtils';
 import { GlassmorphicHeader } from './components/GlassmorphicHeader';
 
-type ViewState = 'analysis' | 'decodeUpload' | 'gallery' | 'styleGallery' | 'artistProfile' | 'profileSettings';
+type ViewState = 'analysis' | 'decodeUpload' | 'gallery' | 'styleGallery';
 
 function App() {
-  const { user, loading, signInWithGoogle } = useAuth();
-  const [signInError, setSignInError] = React.useState<string | null>(null);
+  // const { user, loading, signInWithGoogle } = useAuth();
+  // const [signInError, setSignInError] = React.useState<string | null>(null);
   const [currentView, setCurrentView] = React.useState<ViewState>('gallery');
   
   // Analysis state
@@ -28,10 +28,10 @@ function App() {
   
   const [isAnalysisFromDecode, setIsAnalysisFromDecode] = React.useState(false);
   const [selectedStyle, setSelectedStyle] = React.useState<string>('');
-  const [currentArtistId, setCurrentArtistId] = React.useState<string | undefined>(undefined);
-  const [currentArtistUsername, setCurrentArtistUsername] = React.useState<string | undefined>(undefined);
-  const [viewingArtistId, setViewingArtistId] = React.useState<string | undefined>(undefined);
-  const [currentPostId, setCurrentPostId] = React.useState<string | undefined>(undefined);
+  // const [currentArtistId, setCurrentArtistId] = React.useState<string | undefined>(undefined);
+  // const [currentArtistUsername, setCurrentArtistUsername] = React.useState<string | undefined>(undefined);
+  // const [viewingArtistId, setViewingArtistId] = React.useState<string | undefined>(undefined);
+  // const [currentPostId, setCurrentPostId] = React.useState<string | undefined>(undefined);
 
   const handleSentryTest = () => {
     addBreadcrumb('User clicked Sentry test button', 'ui');
@@ -57,8 +57,8 @@ function App() {
       ...post.analysis_data
     };
     
-    setCurrentArtistId(post.user_id);
-    setCurrentArtistUsername(post.username);
+    // setCurrentArtistId(post.user_id);
+    // setCurrentArtistUsername(post.username);
     
     setCurrentAnalysis(analysisResult);
     setCurrentMediaUrl(post.media_url);
@@ -66,7 +66,7 @@ function App() {
     setCurrentMediaFile(null);
     setCurrentThumbnailFile(null);
     setIsAnalysisFromDecode(false);
-    setCurrentPostId(post.id);
+    // setCurrentPostId(post.id);
     setCurrentView('analysis');
     
     console.log('Gallery post clicked:', {
@@ -75,8 +75,8 @@ function App() {
       mediaType: post.media_type,
       analysisId: post.analysis_data.id,
       isFromDecode: false,
-      artistId: post.user_id,
-      artistUsername: post.username,
+      // artistId: post.user_id,
+      // artistUsername: post.username,
       hasThumbnailUrl: !!post.thumbnail_url
     });
   };
@@ -93,8 +93,8 @@ function App() {
       hasThumbnail: !!thumbnailFile 
     });
     
-    setCurrentArtistId(undefined);
-    setCurrentArtistUsername(undefined);
+    // setCurrentArtistId(undefined);
+    // setCurrentArtistUsername(undefined);
     
     setCurrentAnalysis(analysis);
     setCurrentMediaUrl(mediaUrl);
@@ -102,7 +102,7 @@ function App() {
     setCurrentMediaFile(file);
     setCurrentThumbnailFile(thumbnailFile || null);
     setIsAnalysisFromDecode(true);
-    setCurrentPostId(undefined);
+    // setCurrentPostId(undefined);
     setCurrentView('analysis');
     
     console.log('Decode success - setting analysis from decode:', {
@@ -125,9 +125,9 @@ function App() {
   const handleBackFromAnalysis = () => {
     addBreadcrumb('Back from analysis page', 'ui');
     setIsAnalysisFromDecode(false);
-    setCurrentArtistId(undefined);
-    setCurrentArtistUsername(undefined);
-    setCurrentPostId(undefined);
+    // setCurrentArtistId(undefined);
+    // setCurrentArtistUsername(undefined);
+    // setCurrentPostId(undefined);
     setCurrentView('gallery');
   };
 
@@ -142,102 +142,14 @@ function App() {
     setCurrentView('analysis');
   };
 
-  const handleViewArtistProfileFromApp = (artistId: string) => {
-    addBreadcrumb('View artist profile clicked', 'ui', { artistId });
-    setViewingArtistId(artistId);
-    setCurrentView('artistProfile');
-  };
-
-  const handleBackFromArtistProfile = () => {
-    addBreadcrumb('Back from artist profile', 'ui');
-    setViewingArtistId(undefined);
-    setCurrentView('analysis');
-  };
-
-  const handleProfileSettingsClick = () => {
-    addBreadcrumb('Profile settings clicked', 'ui');
-    setCurrentView('profileSettings');
-  };
-
-  const handleBackFromProfileSettings = () => {
-    addBreadcrumb('Back from profile settings', 'ui');
-    setCurrentView('gallery');
-  };
-
-  const handlePostDeleted = () => {
-    addBreadcrumb('Post deleted successfully', 'ui', { postId: currentPostId });
-    setCurrentView('gallery');
-    setCurrentPostId(undefined);
-  };
+  // Removed artist profile and settings handlers
 
   // Log component mount
   React.useEffect(() => {
     addBreadcrumb('App component mounted', 'navigation');
-    
-    // Check for auth errors in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const error = urlParams.get('error');
-    const errorDescription = urlParams.get('error_description');
-    
-    if (error) {
-      const errorMsg = errorDescription || error;
-      setSignInError(`Authentication failed: ${errorMsg}`);
-      captureError(new Error(errorMsg), { 
-        context: 'urlAuthError',
-        error,
-        errorDescription 
-      });
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter flex items-center justify-center">
-        <div className="flex items-center space-x-3">
-          <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
-          <span className="text-white text-lg">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Show landing page for unauthenticated users
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter">
-        <GlassmorphicHeader
-          onDecodeClick={handleDecodeClick}
-          onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
-        />
-        <LandingPage
-          onSignInWithGoogle={signInWithGoogle}
-          signInError={signInError}
-        />
-      </div>
-    );
-  }
-
-  // Render Profile Settings Page
-  if (currentView === 'profileSettings') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter">
-        <GlassmorphicHeader
-          onDecodeClick={handleDecodeClick}
-          onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
-        />
-        <ProfileSettingsPage onBack={handleBackFromProfileSettings} />
-      </div>
-    );
-  }
+  // Removed loading and authentication checks
 
   // Render Style Gallery Page
   if (currentView === 'styleGallery') {
@@ -246,9 +158,6 @@ function App() {
         <GlassmorphicHeader
           onDecodeClick={handleDecodeClick}
           onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
         />
         <StyleGalleryPage
           styleName={selectedStyle}
@@ -259,26 +168,7 @@ function App() {
     );
   }
 
-  // Render Artist Profile Page
-  if (currentView === 'artistProfile') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter">
-        <GlassmorphicHeader
-          onDecodeClick={handleDecodeClick}
-          onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
-        />
-        <GalleryView
-          onBack={handleBackFromArtistProfile}
-          onPostClick={handleGalleryPostClick}
-          artistId={viewingArtistId}
-          artistUsername={currentArtistUsername}
-        />
-      </div>
-    );
-  }
+  // Removed artist profile page
 
   // Render Gallery View (now the default home page)
   if (currentView === 'gallery') {
@@ -287,9 +177,6 @@ function App() {
         <GlassmorphicHeader
           onDecodeClick={handleDecodeClick}
           onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
         />
         <GalleryView
           onBack={handleBackFromGallery}
@@ -306,9 +193,6 @@ function App() {
         <GlassmorphicHeader
           onDecodeClick={handleDecodeClick}
           onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
         />
         <DecodePage
           onDecodeSuccess={handleDecodeSuccess}
@@ -325,9 +209,6 @@ function App() {
         <GlassmorphicHeader
           onDecodeClick={handleDecodeClick}
           onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
         />
         <AnalysisPage
           analysis={currentAnalysis}
@@ -335,20 +216,20 @@ function App() {
           mediaType={currentMediaType}
           selectedMediaFile={currentMediaFile}
           thumbnailFile={currentThumbnailFile}
-          artistUsername={currentArtistUsername}
-          artistId={currentArtistId}
-          postId={currentPostId}
+          // artistUsername={currentArtistUsername}
+          // artistId={currentArtistId}
+          // postId={currentPostId}
           isFromDecodePage={isAnalysisFromDecode}
           onBack={handleBackFromAnalysis}
           onViewStyleGallery={handleViewStyleGallery}
-          onViewArtistProfile={handleViewArtistProfileFromApp}
-          onPostDeleted={handlePostDeleted}
+          // onViewArtistProfile={handleViewArtistProfileFromApp}
+          // onPostDeleted={handlePostDeleted}
         />
       </div>
     );
   }
 
-  // Default fallback - should not reach here for authenticated users
+  // Default fallback
   return null;
 }
 
