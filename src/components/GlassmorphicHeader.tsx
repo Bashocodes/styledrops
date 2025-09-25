@@ -153,15 +153,24 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Center Section - Decode Button */}
             <button
               onClick={() => {
-                onDecodeClick();
+                if (user) {
+                  onDecodeClick();
+                }
                 addBreadcrumb('Decode button clicked', 'ui');
               }}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              disabled={!user}
+              className={`flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                user 
+                  ? 'hover:bg-black/20 text-[#C78D4E] hover:text-[#D79D5E] cursor-pointer' 
+                  : 'text-[#C78D4E]/50 cursor-not-allowed'
+              }`}
               aria-label="Decode media - analyze your images, videos, or audio"
               tabIndex={0}
             >
               <Code size={16} />
-              <span className="hidden sm:block">Decode Media</span>
+              <span className="hidden sm:block">
+                {user ? 'Decode Media' : 'Sign in to Decode'}
+              </span>
             </button>
           </div>
 
@@ -281,16 +290,23 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
             {/* Decode Button for Mobile */}
             <button
               onClick={() => {
-                onDecodeClick();
+                if (user) {
+                  onDecodeClick();
+                }
                 setIsMobileMenuOpen(false); // Close menu after click
                 addBreadcrumb('Decode button clicked (mobile)', 'ui');
               }}
-              className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
+              disabled={!user}
+              className={`flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 ${
+                user 
+                  ? 'text-[#C78D4E] hover:text-[#D79D5E] hover:bg-white/10 cursor-pointer' 
+                  : 'text-[#C78D4E]/50 cursor-not-allowed'
+              }`}
               aria-label="Decode media - analyze your images, videos, or audio"
               tabIndex={0}
             >
               <Code size={28} />
-              <span>Decode Media</span>
+              <span>{user ? 'Decode Media' : 'Sign in to Decode'}</span>
             </button>
 
             {/* User Authentication for Mobile */}
