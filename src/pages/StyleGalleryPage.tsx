@@ -144,6 +144,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               alt={post.title}
               className="w-full h-auto object-cover shadow-double-border"
               loading="lazy"
+              loading="lazy"
               onError={(e) => {
                 console.error('Failed to load image in style gallery:', {
                   postId: post.id,
@@ -179,6 +180,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
             <video
               src={validatedUrl}
               className="w-full h-auto object-cover shadow-double-border"
+              loading="lazy"
               muted
               preload="none"
               onError={(e) => {
@@ -341,7 +343,12 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                       </p>
                     </div>
 
-                    {/* Removed username badge */}
+                    {/* Username Badge */}
+                    {post.username && (
+                      <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                        @{post.username}
+                      </div>
+                    )}
 
                     {/* Debug info overlay (only in development) */}
                     {import.meta.env.DEV && (

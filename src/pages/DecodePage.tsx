@@ -4,7 +4,7 @@ import { callGeminiAnalysisFunction } from '../lib/geminiApi';
 import { AnalysisResult, TOP_MODULES, BOTTOM_MODULES, ModuleDefinition } from '../constants/modules';
 import { AnalysisContent } from '../components/AnalysisContent';
 import { addBreadcrumb, captureError } from '../lib/sentry';
-// import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 import { generateThumbnailFile } from '../utils/videoThumbnail';
 
 interface DecodePageProps {
@@ -53,7 +53,7 @@ const DECODE_MODULE_DESCRIPTIONS = {
 };
 
 export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack }) => {
-  // const { user } = useAuth();
+  const { user } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -77,6 +77,13 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
 
   // State for animating module for click feedback
   const [animatingModuleId, setAnimatingModuleId] = useState<string | null>(null);
+
+  // Check if environment is properly configured
+  const isEnvironmentConfigured = () => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    return supabaseUrl && supabaseKey && supabaseUrl !== 'your_supabase_url_here';
+  };
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -168,14 +175,22 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
       return;
     }
 
+    // Check environment configuration
+    if (!isEnvironmentConfigured()) {
+      setError(
+        'Environment not configured. Please set up your Supabase credentials in Netlify environment variables and redeploy.'
+      );
+      return;
+    }
+
     try {
       setIsAnalyzing(true);
       setError(null);
       
       addBreadcrumb('Starting decode analysis', 'ui');
       
-      // Call analysis function without user ID
-      const analysis = await callGeminiAnalysisFunction(selectedFile);
+      // Pass user ID if user is authenticated
+      const analysis = await callGeminiAnalysisFunction(selectedFile, user?.id);
       const mediaUrl = previewUrl || URL.createObjectURL(selectedFile);
       const mediaType = getMediaTypeFromFile(selectedFile);
       
@@ -192,9 +207,17 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
         setError(
           'Analysis service is not properly configured. Please check that your Gemini API key is set in the environment variables and redeploy the site.'
         );
+      } else if (errorMessage.includes('posts-media storage bucket is not configured')) {
+        setError(
+          'Storage bucket not configured. Please create a public bucket named "posts-media" in your Supabase Dashboard under Storage, then try again.'
+        );
       } else if (errorMessage.includes('Failed to get response from Gemini API')) {
         setError(
           'AI analysis service is unavailable. Please check your Gemini API key configuration and try again.'
+        );
+      } else if (errorMessage.includes('Gemini API key not configured')) {
+        setError(
+          'Gemini API key is missing. Please add GEMINI_API_KEY to your environment variables and redeploy.'
         );
       } else {
         setError(errorMessage);
@@ -332,8 +355,11 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
   // Check if error is about environment configuration
   const isEnvironmentError = error && (
     error.includes('Environment not configured') ||
+    error.includes('Gemini API key') ||
     error.includes('Analysis service is not properly configured')
   );
+
+  const isConfigured = isEnvironmentConfigured();
 
   return (
     <div className="min-h-screen pt-16 h-screen overflow-hidden bg-charcoal-matte font-inter">
@@ -341,6 +367,23 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
         {/* Left Section - Upload Area (70%) */}
         <div className="flex-1 w-2/3 p-4 flex items-center justify-center relative">
           <div className="w-full max-w-2xl">
+            {/* Environment Warning */}
+            {!isConfigured && (
+              <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <Settings className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-orange-200 text-sm mb-2">
+                      <strong>Setup Required:</strong> Environment variables are not configured.
+                    </p>
+                    <p className="text-orange-300 text-xs">
+                      Please add your Supabase and Gemini API credentials to Netlify environment variables and redeploy.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Upload Section */}
             <div className="w-full p-8 text-center transition-all duration-300">
               {/* Drag and Drop Zone */}
@@ -485,25 +528,39 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                   Back
                 </button>
                 
-                {/* Decode Button */}
-                <button
-                  onClick={handleDecode}
-                  disabled={!selectedFile || isAnalyzing}
-                  className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-3 ${
-                    !selectedFile || isAnalyzing
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                  }`}
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Analyzing...</span>
-                    </>
-                  ) : (
-                    <span>Decode</span>
-                  )}
-                </button>
+                {/* Conditional Decode/Sign In Button */}
+                {user ? (
+                  // Show Decode button for signed-in users
+                  <button
+                    onClick={handleDecode}
+                    disabled={!selectedFile || isAnalyzing || !isConfigured}
+                    className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-3 ${
+                      !selectedFile || isAnalyzing || !isConfigured
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                    }`}
+                    title={!isConfigured ? 'Environment variables not configured' : ''}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <span>Analyzing...</span>
+                      </>
+                    ) : !isConfigured ? (
+                      <>
+                        <Settings className="w-5 h-5" />
+                        <span>Setup Required</span>
+                      </>
+                    ) : (
+                      <span>Decode</span>
+                    )}
+                  </button>
+                ) : (
+                  // Show Sign In message for non-signed-in users
+                  <div className="px-8 py-3 rounded-lg font-medium bg-gray-600 text-gray-400 cursor-not-allowed flex items-center space-x-3">
+                    <span>Sign in to continue</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
