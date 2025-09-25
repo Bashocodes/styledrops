@@ -6,7 +6,6 @@ import { AnalysisPage } from './pages/AnalysisPage';
 import { DecodePage } from './pages/DecodePage';
 import { StyleGalleryPage } from './pages/StyleGalleryPage';
 import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
-import { LandingPage } from './pages/LandingPage';
 import { GalleryView } from './components/GalleryView';
 import { mockAnalysisResult, AnalysisResult } from './constants/modules';
 import { Post } from './lib/supabaseUtils';
@@ -15,7 +14,7 @@ import { GlassmorphicHeader } from './components/GlassmorphicHeader';
 type ViewState = 'analysis' | 'decodeUpload' | 'gallery' | 'styleGallery' | 'artistProfile' | 'profileSettings';
 
 function App() {
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading } = useAuth();
   const [signInError, setSignInError] = React.useState<string | null>(null);
   const [currentView, setCurrentView] = React.useState<ViewState>('gallery');
   
@@ -204,25 +203,6 @@ function App() {
     );
   }
 
-  // Show landing page for unauthenticated users
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter">
-        <GlassmorphicHeader
-          onDecodeClick={handleDecodeClick}
-          onLogoClick={handleLogoClick}
-          onProfileClick={handleProfileSettingsClick}
-          signInError={signInError}
-          onDismissSignInError={() => setSignInError(null)}
-        />
-        <LandingPage
-          onSignInWithGoogle={signInWithGoogle}
-          signInError={signInError}
-        />
-      </div>
-    );
-  }
-
   // Render Profile Settings Page
   if (currentView === 'profileSettings') {
     return (
@@ -348,8 +328,116 @@ function App() {
     );
   }
 
-  // Default fallback - should not reach here for authenticated users
-  return null;
+  // Default fallback - should not reach here
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-dark-matte-300 via-dark-matte-400 to-dark-matte-300 font-inter">
+      <GlassmorphicHeader
+        onDecodeClick={handleDecodeClick}
+        onLogoClick={handleLogoClick}
+        onProfileClick={handleProfileSettingsClick}
+        signInError={signInError}
+        onDismissSignInError={() => setSignInError(null)}
+      />
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-12 pt-32">
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-bold text-white bg-gradient-to-r from-purple-400 via-white to-blue-400 bg-clip-text text-transparent mb-6">
+            StyleDrop
+          </h1>
+          <h2 className="text-xl md:text-2xl font-medium text-gray-200 mb-4">
+            Discover, Mix, and Analyze AI Art Styles
+          </h2>
+          <p className="text-gray-300 text-lg max-w-3xl mx-auto leading-relaxed">
+            Explore a curated library of AI-generated art styles, decode visual aesthetics, and generate creative prompts for MidJourney, Stable Diffusion, and other AI art tools.
+          </p>
+        </div>
+
+        {/* Features Overview */}
+        <section className="mb-16">
+          <h2 className="text-2xl md:text-3xl font-semibold text-white text-center mb-12">
+            How StyleDrop Works
+          </h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-purple-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Discover Styles</h3>
+              <p className="text-gray-400 text-sm">
+                Browse our curated gallery of AI art styles and visual aesthetics from various artistic movements and genres.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500/20 to-teal-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Decode Media</h3>
+              <p className="text-gray-400 text-sm">
+                Upload your own images, videos, or audio to analyze their style and generate detailed creative prompts.
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500/20 to-red-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-orange-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Create & Mix</h3>
+              <p className="text-gray-400 text-sm">
+                Get inspired with story prompts, animation ideas, music suggestions, and creative remixes for your projects.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Call to Action */}
+        <section className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-r from-purple-500/20 to-blue-500/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
+            <Sparkles className="w-8 h-8 text-purple-400" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">
+            Ready to Get Started?
+          </h2>
+          <p className="text-gray-300 max-w-md mx-auto mb-6">
+            {user 
+              ? 'Use the decode button above to analyze your first media file, or explore the gallery to discover new styles.'
+              : 'Sign in with Google to start creating, analyzing, and saving your favorite AI art styles.'
+            }
+          </p>
+          
+          {/* Sentry Test Button */}
+          <div className="mt-8">
+            <button 
+              onClick={handleSentryTest}
+              className="group flex items-center space-x-2 px-6 py-3 bg-red-500/10 backdrop-blur-sm rounded-lg border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/30 transition-all duration-300 mx-auto"
+            >
+              <span className="text-sm font-medium text-red-300 group-hover:text-red-200 transition-colors">
+                Test Sentry Error Reporting
+              </span>
+            </button>
+            <p className="text-xs text-gray-500 mt-2">
+              Development: Click to test error tracking
+            </p>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-white/5 mt-20">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded opacity-80"></div>
+              <span className="text-sm text-gray-500">StyleDrop © 2025</span>
+            </div>
+            <div className="text-sm text-gray-600">
+              Powered by creativity
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
 }
 
 export default App;
