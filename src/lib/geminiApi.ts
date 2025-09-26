@@ -12,85 +12,16 @@ export interface GeminiAnalysisRequest {
   mediaType: 'image' | 'video' | 'audio';
 }
 
-export const callGeminiAnalysisFunction = async (file: File, userId?: string): Promise<AnalysisResult> => {
+export const callGeminiAnalysisFunction = async (file: File): Promise<AnalysisResult> => {
   try {
     addBreadcrumb('Starting Gemini analysis with R2 upload', 'api', { 
       fileName: file.name, 
       fileSize: file.size,
       fileType: file.type,
-      hasUserId: !!userId
+      hasUserId: false
     });
 
-    // Step 1: Upload file to R2 first
-    let r2PublicUrl = '';
-    let r2Key = '';
-    
-    if (userId) {
-      try {
-        addBreadcrumb('Uploading file to R2 before analysis', 'upload');
-
-        // Compress image if needed
-        let fileToUpload = file;
-        if (file.type.startsWith('image/')) {
-          try {
-            fileToUpload = await compressImage(file, 2);
-            addBreadcrumb('Image compressed for R2 upload', 'upload', {
-              originalSize: file.size,
-              compressedSize: fileToUpload.size
-            });
-          } catch (compressionError) {
-            console.warn('Image compression failed, using original file:', compressionError);
-          }
-        }
-
-        // Get presigned URL from Netlify Function with proper error handling
-        const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-        const signUrl = `/.netlify/functions/r2-sign?contentType=${encodeURIComponent(fileToUpload.type)}&ext=${encodeURIComponent(ext)}&folder=analyses`;
-        
-        console.log('Requesting presigned URL from:', signUrl);
-        
-        const signResponse = await fetch(signUrl, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (!signResponse.ok) {
-          const errorText = await signResponse.text();
-          console.error('Presigned URL request failed:', {
-            status: signResponse.status,
-            statusText: signResponse.statusText,
-            errorText: errorText
-          });
-          throw new Error(`Failed to get presigned URL: ${signResponse.status} ${signResponse.statusText}`);
-        }
-
-        const signResult = await signResponse.json();
-
-        if (signResult.error) {
-          throw new Error(signResult.error);
-        }
-
-        // Upload to R2
-        await uploadFileToR2(fileToUpload, signResult.uploadUrl);
-        
-        r2PublicUrl = signResult.publicUrl;
-        r2Key = signResult.key;
-        
-        addBreadcrumb('File uploaded to R2 successfully', 'upload', {
-          publicUrl: r2PublicUrl,
-          key: r2Key
-        });
-      } catch (uploadError) {
-        console.error('R2 upload failed, proceeding with analysis only:', uploadError);
-        captureError(uploadError as Error, { context: 'r2UploadBeforeAnalysis' });
-        // Continue with analysis even if R2 upload fails
-      }
-    }
-
-    // Step 2: Convert file to base64 for Gemini analysis
+    // Step 1: Convert file to base64 for Gemini analysis
     const base64Data = await fileToBase64(file);
     
     console.log('CLIENT: Base64 conversion completed', {
@@ -151,48 +82,9 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
     // Parse and validate the analysis result using our robust parser
     let analysisResult = parseAnalysisResponse(data.analysis);
 
-    // Step 4: If user is authenticated and R2 upload succeeded, save to database
-    if (userId && r2PublicUrl && r2Key) {
-      try {
-        addBreadcrumb('Starting database save with R2 URL', 'database', { userId, r2PublicUrl });
-
-        const analysisId = await saveAnalysisToDatabase(
-          r2PublicUrl, // R2 CDN URL
-          r2Key, // R2 object key
-          userId,
-          analysisResult,
-          file.name,
-          file.size,
-          file.type
-        );
-        
-        // Update the analysis result with the database-generated UUID
-        analysisResult.id = analysisId;
-        
-        addBreadcrumb('Analysis saved with database UUID and R2 URL', 'database', { analysisId, r2PublicUrl });
-        console.log('CLIENT: Analysis saved successfully with UUID and R2 URL:', analysisId);
-      } catch (dbError) {
-        console.error('Database save failed:', dbError);
-        captureError(dbError as Error, { 
-          context: 'saveAnalysisToDatabase',
-          userId,
-          fileName: file.name,
-          r2PublicUrl,
-          r2Key
-        });
-        addBreadcrumb('Database save failed, analysis will not have database ID', 'database', {
-          error: dbError instanceof Error ? dbError.message : 'Unknown error'
-        });
-        
-        // Don't throw error here - continue with analysis without database save
-        console.warn('Continuing without database save due to database operation failure');
-        
-        throw new Error(`Analysis completed but could not be saved to database: ${dbError instanceof Error ? dbError.message : 'Unknown error'}`);
-      }
-    } else {
-      addBreadcrumb('User not authenticated or R2 upload failed, skipping database save', 'database');
-      console.log('CLIENT: User not authenticated or R2 upload failed, analysis will not be saved to database');
-    }
+    // Analysis is complete - no database save needed for unauthenticated users
+    addBreadcrumb('Analysis completed without database save', 'database');
+    console.log('CLIENT: Analysis completed successfully without database persistence');
     
     return analysisResult;
   } catch (error) {

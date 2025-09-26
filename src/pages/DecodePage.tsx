@@ -175,22 +175,14 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
       return;
     }
 
-    // Check environment configuration
-    if (!isEnvironmentConfigured()) {
-      setError(
-        'Environment not configured. Please set up your Supabase credentials in Netlify environment variables and redeploy.'
-      );
-      return;
-    }
-
     try {
       setIsAnalyzing(true);
       setError(null);
       
       addBreadcrumb('Starting decode analysis', 'ui');
       
-      // Pass user ID if user is authenticated
-      const analysis = await callGeminiAnalysisFunction(selectedFile, user?.id);
+      // Call analysis function without user ID (no authentication required)
+      const analysis = await callGeminiAnalysisFunction(selectedFile);
       const mediaUrl = previewUrl || URL.createObjectURL(selectedFile);
       const mediaType = getMediaTypeFromFile(selectedFile);
       
@@ -205,19 +197,15 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
       // Enhanced error handling for common issues
       if (errorMessage.includes('Edge Function returned a non-2xx status code')) {
         setError(
-          'Analysis service is not properly configured. Please check that your Gemini API key is set in the environment variables and redeploy the site.'
-        );
-      } else if (errorMessage.includes('posts-media storage bucket is not configured')) {
-        setError(
-          'Storage bucket not configured. Please create a public bucket named "posts-media" in your Supabase Dashboard under Storage, then try again.'
+          'Analysis service is temporarily unavailable. Please try again later.'
         );
       } else if (errorMessage.includes('Failed to get response from Gemini API')) {
         setError(
-          'AI analysis service is unavailable. Please check your Gemini API key configuration and try again.'
+          'AI analysis service is temporarily unavailable. Please try again later.'
         );
       } else if (errorMessage.includes('Gemini API key not configured')) {
         setError(
-          'Gemini API key is missing. Please add GEMINI_API_KEY to your environment variables and redeploy.'
+          'AI analysis service is temporarily unavailable. Please try again later.'
         );
       } else {
         setError(errorMessage);
@@ -528,39 +516,25 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                   Back
                 </button>
                 
-                {/* Conditional Decode/Sign In Button */}
-                {user ? (
-                  // Show Decode button for signed-in users
-                  <button
-                    onClick={handleDecode}
-                    disabled={!selectedFile || isAnalyzing || !isConfigured}
-                    className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-3 ${
-                      !selectedFile || isAnalyzing || !isConfigured
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
-                    }`}
-                    title={!isConfigured ? 'Environment variables not configured' : ''}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        <span>Analyzing...</span>
-                      </>
-                    ) : !isConfigured ? (
-                      <>
-                        <Settings className="w-5 h-5" />
-                        <span>Setup Required</span>
-                      </>
-                    ) : (
-                      <span>Decode</span>
-                    )}
-                  </button>
-                ) : (
-                  // Show Sign In message for non-signed-in users
-                  <div className="px-8 py-3 rounded-lg font-medium bg-gray-600 text-gray-400 cursor-not-allowed flex items-center space-x-3">
-                    <span>Sign in to continue</span>
-                  </div>
-                )}
+                <button
+                  onClick={handleDecode}
+                  disabled={!selectedFile || isAnalyzing}
+                  className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 flex items-center space-x-3 ${
+                    !selectedFile || isAnalyzing
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:scale-105'
+                  }`}
+                  aria-label="Decode media file"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Analyzing...</span>
+                    </>
+                  ) : (
+                    <span>Decode</span>
+                  )}
+                </button>
               </div>
             </div>
           </div>
