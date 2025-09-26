@@ -428,7 +428,7 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <img 
-                src="/ezokai png.png" 
+                src="/ezokai-logo.png" 
                 alt="StyleDrop Logo" 
                 className="w-6 h-6 object-contain opacity-80"
               />

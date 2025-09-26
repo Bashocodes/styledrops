@@ -128,7 +128,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
               tabIndex={0}
             >
               <img 
-                src="/ezokai png.png" 
+                src="/ezokai-logo.png" 
                 alt="StyleDrop Logo" 
                 className="h-7 w-auto object-contain"
                 style={{ filter: 'brightness(1.2) contrast(1.1)' }}
@@ -248,15 +248,9 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                 </div>
               ) : (
                 /* Signed Out State */
-                <button
-                  onClick={handleGoogleSignIn}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-2xl transition-colors font-mono tracking-wide bg-black/50 hover:bg-black/60 text-[#B8A082] focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                  aria-label="Sign in with Google to access all features"
-                  tabIndex={0}
-                >
-                  <LogIn size={16} />
-                  <span className="hidden sm:block">Sign in with Google</span>
-                </button>
+                <div className="flex items-center gap-2 px-4 py-1.5 rounded-2xl font-mono tracking-wide bg-black/50 text-[#B8A082]/60">
+                  <span className="hidden sm:block">Coming Soon!</span>
+                </div>
               )}
             </div>
           </div>
@@ -335,18 +329,9 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
                 </button>
               </div>
             ) : (
-              <button
-                onClick={() => {
-                  handleGoogleSignIn();
-                  setIsMobileMenuOpen(false); // Close menu after click
-                }}
-                className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#B8A082] hover:text-[#A69072] hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900"
-                aria-label="Sign in with Google to access all features"
-                tabIndex={0}
-              >
-                <LogIn size={28} />
-                <span>Sign in with Google</span>
-              </button>
+              <div className="flex items-center gap-3 px-6 py-3 rounded-full text-2xl font-mono tracking-wide text-[#B8A082]/60">
+                <span>Coming Soon!</span>
+              </div>
             )}
           </nav>
         </div>
