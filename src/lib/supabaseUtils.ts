@@ -23,7 +23,7 @@ export interface BookmarkedAnalysis {
 }
 
 export interface PostData {
-  user_id: string;
+  user_id: string | null; // Allow null for anonymous posts
   username: string;
   media_url: string; // Now points to R2 CDN URL
   media_type: 'image' | 'video' | 'audio';
@@ -36,7 +36,7 @@ export interface PostData {
 
 export interface Post {
   id: string;
-  user_id: string;
+  user_id: string | null; // Allow null for anonymous posts
   username: string;
   media_url: string; // R2 CDN URL
   media_type: 'image' | 'video' | 'audio';

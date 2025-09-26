@@ -163,12 +163,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   const handlePost = async () => {
-    if (!user) {
-      addBreadcrumb('User attempted to post without authentication', 'ui');
-      alert('Please sign in to post to the gallery');
-      return;
-    }
-
     if (!hasValidDatabaseId) {
       addBreadcrumb('User attempted to post analysis without database ID', 'ui');
       alert('This analysis could not be saved to the database and cannot be posted to the gallery. Please try analyzing the media again.');
@@ -181,7 +175,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       return;
     }
 
-    if (!user.username) {
+    // For authenticated users, check if they have a username
+    if (user && !user.username) {
       addBreadcrumb('User attempted to post without username', 'ui');
       alert('Please set a username in your profile to post to the gallery');
       return;
@@ -190,7 +185,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
     try {
       setIsPosting(true);
       setPostStatus('idle');
-      addBreadcrumb('User initiated post to gallery with R2 URL', 'ui');
+      addBreadcrumb('Post initiated to gallery with R2 URL', 'ui', { isAnonymous: !user });
 
       let finalMediaUrl = mediaUrl; // Should already be R2 CDN URL
       let r2Key = extractKeyFromUrl(mediaUrl); // Extract R2 key from URL
@@ -265,8 +260,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
       // Create the post data with R2 URLs
       const postData: PostData = {
-        user_id: user.id,
-        username: user.username,
+        user_id: user?.id || null, // Allow null for anonymous posts
+        username: user?.username || 'Anonymous', // Use 'Anonymous' for non-authenticated users
         media_url: finalMediaUrl, // R2 CDN URL
         media_type: mediaType,
         title: currentAnalysis.title,
@@ -281,6 +276,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         mediaType: postData.media_type,
         title: postData.title,
         username: postData.username,
+        isAnonymous: !user,
         hasValidUrl: postData.media_url.startsWith('http'),
         hasThumbnailUrl: !!postData.thumbnail_url,
         hasR2Key: !!postData.r2_key,
@@ -294,6 +290,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
       setIsAlreadyPosted(true);
       addBreadcrumb('Post to gallery successful with R2 URLs', 'ui', { 
         postId: newPost.id,
+        isAnonymous: !user,
         hasThumbnail: !!newPost.thumbnail_url,
         hasR2Key: !!newPost.r2_key
       });
