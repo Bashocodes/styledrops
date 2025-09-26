@@ -566,6 +566,12 @@ export const getPostsByStyle = async (
   searchQuery?: string
 ): Promise<{ posts: Post[]; hasMore: boolean }> => {
   try {
+    // Check if Supabase is configured
+    if (!isSupabaseReady || !supabase) {
+      console.warn('Supabase not configured, returning empty posts array');
+      return { posts: [], hasMore: false };
+    }
+
     addBreadcrumb('Fetching posts by style', 'database', { style, sortOrder, limit, offset, mediaType, searchQuery });
 
     let query = supabase

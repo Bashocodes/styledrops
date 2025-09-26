@@ -16,6 +16,11 @@ export function useAuth() {
   useEffect(() => {
     const fetchUserProfile = async (userId: string) => {
       try {
+        if (!isSupabaseReady || !supabase) {
+          console.warn('Supabase not configured, skipping profile fetch');
+          return null;
+        }
+
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('username, full_name, avatar_url')
@@ -84,6 +89,10 @@ export function useAuth() {
 
   const signInWithGoogle = async () => {
     try {
+      if (!isSupabaseReady || !supabase) {
+        throw new Error('Supabase not configured. Please set up your environment variables.');
+      }
+
       addBreadcrumb('Attempting Google sign in', 'auth');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -118,6 +127,10 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
+      if (!isSupabaseReady || !supabase) {
+        throw new Error('Supabase not configured. Please set up your environment variables.');
+      }
+
       addBreadcrumb('Attempting sign out', 'auth');
       
       const { error } = await supabase.auth.signOut()
