@@ -94,11 +94,6 @@ const extractGeminiJSON = (responseText: string): GeminiAnalysisResult => {
     cleanedText = cleanedText
       // Remove trailing commas before closing brackets/braces
       .replace(/,(\s*[}\]])/g, '$1')
-      // Replace smart quotes with regular quotes
-      .replace(/[""]/g, '"')
-      .replace(/['']/g, "'")
-      // Ensure proper quote escaping
-      .replace(/([^\\])"/g, '$1"');
 
     console.log('SERVER: Text cleaning completed', {
       cleanedLength: cleanedText.length,
@@ -115,7 +110,8 @@ const extractGeminiJSON = (responseText: string): GeminiAnalysisResult => {
     console.error('SERVER: All parsing strategies failed', {
       cleanError: cleanParseError instanceof Error ? cleanParseError.message : 'Unknown error',
       originalText: responseText.substring(0, 500),
-      cleanedText: cleanedText.substring(0, 500)
+      cleanedText: cleanedText.substring(0, 500),
+      fullCleanedText: cleanedText // ENHANCED: Log the full cleaned text that failed to parse
     });
     
     throw new Error(`Failed to parse Gemini response: ${cleanParseError instanceof Error ? cleanParseError.message : 'Unknown parsing error'}`);
@@ -439,6 +435,9 @@ CRITICAL: The keyTokens array MUST contain exactly 7 elements. Each element shou
       textPreview: analysisText.substring(0, 200) + '...'
     });
     
+    // ENHANCED: Log the full analysis text for debugging
+    console.log('SERVER: Full Gemini 2.5 Flash response text:', analysisText);
+    
     // Parse the analysis result using robust JSON extraction
     let analysisResult;
     try {
@@ -449,12 +448,13 @@ CRITICAL: The keyTokens array MUST contain exactly 7 elements. Each element shou
       });
     } catch (parseError) {
       console.error('SERVER: Failed to parse/validate analysis result:', parseError);
-      console.error('SERVER: Raw Gemini response text:', analysisText); // ENHANCED: Include raw response in error log
+      console.error('SERVER: Raw Gemini 2.5 Flash response text for debugging:', analysisText);
       return new Response(
         JSON.stringify({ 
           error: 'Failed to parse analysis result',
           details: parseError instanceof Error ? parseError.message : 'Parse error',
-          responsePreview: analysisText.substring(0, 500) + '...'
+          responsePreview: analysisText.substring(0, 500) + '...',
+          fullResponse: analysisText // ENHANCED: Include full response in error for debugging
         }),
         {
           status: 400,
