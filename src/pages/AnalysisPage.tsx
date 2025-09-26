@@ -508,7 +508,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             <React.Fragment key={module.id}>
               <button
                 onClick={() => handleTabClick(module.id, setActiveModule)}
-                className={`flex items-center space-x-2 font-mono text-lg cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded ${
+                className={`flex-1 p-3 text-xs font-medium transition-all duration-300 relative overflow-hidden flex items-center justify-center ${
                   isActive
                     ? 'text-white'
                     : 'text-gray-400 hover:text-gray-300'
