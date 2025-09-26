@@ -69,16 +69,23 @@ export const saveAnalysisToDatabase = async (
   try {
     addBreadcrumb('Starting analysis save with R2 URL', 'database', { userId, mediaUrl });
 
+    // Handle 'anon' userId - convert to null for database insertion
+    const dbUserId = userId === 'anon' ? null : userId;
+
     // Step 1: Insert into images table (store R2 info instead of Supabase storage)
     const imageInsertData = {
-      user_id: userId,
+      user_id: dbUserId,
       storage_path: r2Key, // Store R2 key instead of Supabase path
       original_filename: originalFilename,
       file_size: fileSize,
       mime_type: mimeType
     };
 
-    console.log('Inserting image metadata with R2 info:', imageInsertData);
+    console.log('Inserting image metadata with R2 info:', {
+      ...imageInsertData,
+      originalUserId: userId,
+      convertedUserId: dbUserId
+    });
 
     const { data: imageData, error: imageError } = await supabase
       .from('images')
@@ -91,7 +98,9 @@ export const saveAnalysisToDatabase = async (
       captureError(new Error(imageError.message), { 
         context: 'insertImageMetadata',
         errorCode: imageError.code,
-        insertData: imageInsertData
+        insertData: imageInsertData,
+        originalUserId: userId,
+        convertedUserId: dbUserId
       });
       throw new Error(`Failed to save image metadata: ${imageError.message}`);
     }
