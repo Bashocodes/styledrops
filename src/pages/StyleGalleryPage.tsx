@@ -144,7 +144,6 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               alt={post.title}
               className="w-full h-auto object-cover shadow-double-border"
               loading="lazy"
-              loading="lazy"
               onError={(e) => {
                 console.error('Failed to load image in style gallery:', {
                   postId: post.id,
