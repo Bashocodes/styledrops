@@ -128,7 +128,7 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
               tabIndex={0}
             >
               <img 
-                src="/Glowing Infinity in Frosted Glass copy copy.png" 
+                src="/ezokai png.png" 
                 alt="StyleDrop Logo" 
                 className="h-7 w-auto object-contain"
                 style={{ filter: 'brightness(1.2) contrast(1.1)' }}

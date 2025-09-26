@@ -427,7 +427,11 @@ function App() {
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded opacity-80"></div>
+              <img 
+                src="/ezokai png.png" 
+                alt="StyleDrop Logo" 
+                className="w-6 h-6 object-contain opacity-80"
+              />
               <span className="text-sm text-gray-500">StyleDrop © 2025</span>
             </div>
             <div className="text-sm text-gray-600">
