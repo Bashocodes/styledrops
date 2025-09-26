@@ -21,11 +21,3 @@ if (!isSupabaseConfigured) {
     keyLength: supabaseAnonKey?.length || 0
   });
 }
-
-// Create Supabase client with fallback for development
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
-
-// Export configuration status for other modules to check
-export const isSupabaseReady = isSupabaseConfigured;
