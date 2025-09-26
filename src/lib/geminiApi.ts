@@ -12,13 +12,13 @@ export interface GeminiAnalysisRequest {
   mediaType: 'image' | 'video' | 'audio';
 }
 
-export const callGeminiAnalysisFunction = async (file: File): Promise<AnalysisResult> => {
+export const callGeminiAnalysisFunction = async (file: File, userId?: string): Promise<AnalysisResult> => {
   try {
     addBreadcrumb('Starting Gemini analysis with R2 upload', 'api', { 
       fileName: file.name, 
       fileSize: file.size,
       fileType: file.type,
-      hasUserId: false
+      hasUserId: !!userId
     });
 
     // Step 1: Convert file to base64 for Gemini analysis
@@ -82,9 +82,60 @@ export const callGeminiAnalysisFunction = async (file: File): Promise<AnalysisRe
     // Parse and validate the analysis result using our robust parser
     let analysisResult = parseAnalysisResponse(data.analysis);
 
-    // Analysis is complete - no database save needed for unauthenticated users
-    addBreadcrumb('Analysis completed without database save', 'database');
-    console.log('CLIENT: Analysis completed successfully without database persistence');
+    // Step 4: Save to database if we have a userId (including 'anon')
+    if (userId && selectedMediaFile) {
+      try {
+        addBreadcrumb('Saving analysis to database', 'database', { userId });
+        
+        // Upload file to R2 for database storage
+        const ext = '.' + selectedMediaFile.name.split('.').pop()?.toLowerCase();
+        
+        // Get presigned URL from Netlify Function
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=uploads`);
+        const signResult = await signResponse.json();
+
+        if (!signResponse.ok || signResult.error) {
+          throw new Error(signResult.error || 'Failed to get presigned URL from Netlify Function');
+        }
+
+        // Compress image if needed
+        let fileToUpload = selectedMediaFile;
+        if (selectedMediaFile.type.startsWith('image/')) {
+          try {
+            fileToUpload = await compressImage(selectedMediaFile, 2);
+          } catch (compressionError) {
+            console.warn('Image compression failed, using original file:', compressionError);
+          }
+        }
+
+        await uploadFileToR2(fileToUpload, signResult.uploadUrl);
+        
+        // Save analysis to database with R2 URL
+        const analysisId = await saveAnalysisToDatabase(
+          signResult.publicUrl, // R2 CDN URL
+          signResult.key, // R2 key
+          userId,
+          analysisResult,
+          selectedMediaFile.name,
+          selectedMediaFile.size,
+          selectedMediaFile.type
+        );
+        
+        // Update analysis result with database ID
+        analysisResult.id = analysisId;
+        
+        addBreadcrumb('Analysis saved to database successfully', 'database', { analysisId });
+        console.log('CLIENT: Analysis saved to database with ID:', analysisId);
+      } catch (saveError) {
+        console.error('Failed to save analysis to database:', saveError);
+        captureError(saveError as Error, { context: 'saveAnalysisToDatabase' });
+        // Continue without database save - analysis still works
+        addBreadcrumb('Analysis completed without database save due to error', 'database');
+      }
+    } else {
+      addBreadcrumb('Analysis completed without database save (no userId)', 'database');
+      console.log('CLIENT: Analysis completed successfully without database persistence');
+    }
     
     return analysisResult;
   } catch (error) {

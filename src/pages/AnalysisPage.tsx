@@ -563,10 +563,8 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
 
   const getPostButtonContent = () => {
     if (authLoading || checkingPostStatus) return { text: 'Loading...', disabled: true };
-    if (!user) return { text: 'Sign In to Post', disabled: true };
     if (!hasValidDatabaseId) return { text: 'Cannot Post', disabled: true };
     if (isAlreadyPosted) return { text: 'Already Posted', disabled: true };
-    if (!user.username) return { text: 'Set Username', disabled: true };
     if (isPosting) return { text: 'Posting...', disabled: true };
     if (postStatus === 'success') return { text: 'Posted!', disabled: false };
     if (postStatus === 'error') return { text: 'Failed', disabled: false };
@@ -574,32 +572,23 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
   };
 
   const getPostButtonStyle = () => {
-    if (authLoading || checkingPostStatus || !user) return 'bg-white/10 text-white/50';
     if (!hasValidDatabaseId) return 'bg-red-500/20 text-red-400';
     if (isAlreadyPosted) return 'bg-gray-500/20 text-gray-400';
-    if (!user.username) return 'bg-orange-500/20 text-orange-400';
     if (postStatus === 'success') return 'bg-green-500/20 text-green-400';
     if (postStatus === 'error') return 'bg-red-500/20 text-red-400';
     return 'bg-[#B8A082]/20 text-[#B8A082]';
   };
 
   // NEW: Check if user can delete this post
-  const canDeletePost = user && postId && artistId && user.id === artistId;
+  const canDeletePost = user && postId && artistId && user.id === artistId && artistId !== 'anon';
 
   // NEW: Check if style codes input should be visible
-  const shouldShowStyleCodes = user && !isAlreadyPosted && (isFromDecodePage || (artistId && user.id === artistId));
+  const shouldShowStyleCodes = !isAlreadyPosted && (isFromDecodePage || (artistId && user?.id === artistId));
 
   const postButtonContent = getPostButtonContent();
   const postButtonStyle = getPostButtonStyle();
 
   const shouldShowPostButton = isFromDecodePage && !isAlreadyPosted;
-
-  console.log('POST button visibility logic:', {
-    isFromDecodePage,
-    isAlreadyPosted,
-    shouldShowPostButton,
-    hasValidDatabaseId
-  });
 
   return (
     <main className="min-h-screen pt-16 bg-charcoal-matte font-inter">
@@ -649,7 +638,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               </p>
 
               {/* Artist Username Display - Removed User Icon */}
-              {artistUsername && artistId && (
+              {artistUsername && artistId && artistId !== 'anon' && (
                 <button
                   onClick={handleViewArtistProfile}
                   className="flex items-center space-x-2 font-mono text-base cursor-pointer hover:underline transition-colors mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
@@ -768,6 +757,22 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               </div>
             </div>
           </div>
+
+          {/* POST Button - Now visible for anonymous users */}
+          {shouldShowPostButton && (
+            <div className="fixed bottom-6 right-6 z-10">
+              <button
+                onClick={handlePost}
+                disabled={postButtonContent.disabled}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${postButtonStyle} ${
+                  postButtonContent.disabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
+                aria-label="Post analysis to gallery"
+              >
+                {postButtonContent.text}
+              </button>
+            </div>
+          )}
         </aside>
       </div>
 

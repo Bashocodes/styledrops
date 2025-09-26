@@ -181,8 +181,8 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
       
       addBreadcrumb('Starting decode analysis', 'ui');
       
-      // Call analysis function without user ID (no authentication required)
-      const analysis = await callGeminiAnalysisFunction(selectedFile);
+      // Call analysis function with 'anon' as userId to enable posting
+      const analysis = await callGeminiAnalysisFunction(selectedFile, 'anon');
       const mediaUrl = previewUrl || URL.createObjectURL(selectedFile);
       const mediaType = getMediaTypeFromFile(selectedFile);
       
