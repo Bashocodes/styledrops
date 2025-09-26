@@ -279,35 +279,35 @@ Deno.serve(async (req: Request) => {
 
     console.log('SERVER: Gemini API key found, proceeding with analysis');
 
-    // SIMPLIFIED: Construct the analysis prompt with relaxed requirements for dialogue prompts
-    const analysisPrompt = `Analyze this ${mediaType} and return ONLY a valid JSON object with the following exact structure. Do not include any markdown formatting, code blocks, or additional text:
+    // RELAXED: Construct the analysis prompt with more flexible requirements to improve JSON parsing success
+    const analysisPrompt = `Analyze this ${mediaType} and return ONLY a valid JSON object with the following structure. Do not include any markdown formatting, code blocks, or additional text:
 
 {
-  "title": "2 word creative title",
-  "style": "3 word creative description",
-  "prompt": "Complete description of the scene in exactly 33 words",
+  "title": "creative title (2-3 words)",
+  "style": "style description (2-4 words)",
+  "prompt": "complete scene description (25-40 words)",
   "keyTokens": ["token1","token2","token3","token4","token5","token6","token7"],
-  "creativeRemixes": ["enhanced_remix1_15_to_21_words","enhanced_remix2_15_to_21_words","enhanced_remix3_15_to_21_words"],
-  "outpaintingPrompts": ["enhanced_outpainting1_15_to_21_words","enhanced_outpainting2_15_to_21_words","enhanced_outpainting3_15_to_21_words"],
-  "animationPrompts": ["enhanced_video1_15_to_21_words_5s_max","enhanced_video2_15_to_21_words_5s_max","enhanced_video3_15_to_21_words_5s_max"],
-  "musicPrompts": ["enhanced_music1_150_to_180_characters","enhanced_music2_150_to_180_characters","enhanced_music3_150_to_180_characters"],
-  "dialoguePrompts": ["dialogue1_5_to_10_words","dialogue2_5_to_10_words","dialogue3_5_to_10_words"],
-  "storyPrompts": ["enhanced_story1_15_to_21_words","enhanced_story2_15_to_21_words","enhanced_story3_15_to_21_words"]
+  "creativeRemixes": ["remix1","remix2","remix3"],
+  "outpaintingPrompts": ["outpainting1","outpainting2","outpainting3"],
+  "animationPrompts": ["animation1","animation2","animation3"],
+  "musicPrompts": ["music1","music2","music3"],
+  "dialoguePrompts": ["dialogue1","dialogue2","dialogue3"],
+  "storyPrompts": ["story1","story2","story3"]
 }
 
 REQUIREMENTS:
-- title: Exactly 2 words that capture the essence
-- style: Exactly 3 words describing the aesthetic
-- prompt: Exactly 33 words describing the complete scene
-- keyTokens: EXACTLY 7 two-word tokens that best summarize the content (no more, no less)
-- creativeRemixes: 3 creative reinterpretations, each 15-21 words
-- outpaintingPrompts: 3 scene expansion prompts, each 15-21 words
-- animationPrompts: 3 video animation descriptions, each 15-21 words, max 5 seconds
-- musicPrompts: 3 music style descriptions, each 150-180 characters
-- dialoguePrompts: 3 dialogue/narration prompts, each 5-10 words (simple and flexible)
-- storyPrompts: 3 unique story concepts, each 15-21 words
+- title: 2-3 words that capture the essence
+- style: 2-4 words describing the aesthetic
+- prompt: 25-40 words describing the complete scene
+- keyTokens: 7 descriptive tokens that summarize the content
+- creativeRemixes: 3 creative reinterpretations (10-25 words each)
+- outpaintingPrompts: 3 scene expansion prompts (10-25 words each)
+- animationPrompts: 3 video animation descriptions (10-25 words each)
+- musicPrompts: 3 music style descriptions (brief descriptions)
+- dialoguePrompts: 3 dialogue/narration prompts (3-12 words each)
+- storyPrompts: 3 unique story concepts (10-25 words each)
 
-CRITICAL: The keyTokens array MUST contain exactly 7 elements. Each element should be a meaningful two-word phrase that captures key aspects of the ${mediaType}. Return ONLY the JSON object above. No markdown, no code blocks, no additional text. Start with { and end with }.`;
+IMPORTANT: Return ONLY the JSON object above. No markdown, no code blocks, no additional text. Start with { and end with }.`;
 
     // Prepare the request to Gemini API
     const geminiRequest = {
