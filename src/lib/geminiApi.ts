@@ -83,15 +83,15 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
     let analysisResult = parseAnalysisResponse(data.analysis);
 
     // Step 4: Save to database if we have a userId (including 'anon')
-    if (userId && selectedMediaFile) {
+    if (userId && file) {
       try {
         addBreadcrumb('Saving analysis to database', 'database', { userId });
         
         // Upload file to R2 for database storage
-        const ext = '.' + selectedMediaFile.name.split('.').pop()?.toLowerCase();
+        const ext = '.' + file.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=uploads`);
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${file.type}&ext=${ext}&folder=uploads`);
         const signResult = await signResponse.json();
 
         if (!signResponse.ok || signResult.error) {
@@ -99,10 +99,10 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
         }
 
         // Compress image if needed
-        let fileToUpload = selectedMediaFile;
-        if (selectedMediaFile.type.startsWith('image/')) {
+        let fileToUpload = file;
+        if (file.type.startsWith('image/')) {
           try {
-            fileToUpload = await compressImage(selectedMediaFile, 2);
+            fileToUpload = await compressImage(file, 2);
           } catch (compressionError) {
             console.warn('Image compression failed, using original file:', compressionError);
           }
@@ -116,9 +116,9 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
           signResult.key, // R2 key
           userId,
           analysisResult,
-          selectedMediaFile.name,
-          selectedMediaFile.size,
-          selectedMediaFile.type
+          file.name,
+          file.size,
+          file.type
         );
         
         // Update analysis result with database ID
