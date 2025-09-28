@@ -123,16 +123,11 @@ export const GlassmorphicHeader: React.FC<GlassmorphicHeaderProps> = ({
           <div className="flex-1 flex items-center justify-start">
             <button
               onClick={handleLogoClick}
-              className="hover:opacity-80 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg"
+              className="hover:opacity-80 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-gray-900 rounded-lg font-mono font-bold text-white text-lg tracking-wide"
               aria-label="StyleDrop home"
               tabIndex={0}
             >
-              <img 
-                src="/ezokai-logo.png" 
-                alt="StyleDrop Logo" 
-                className="h-7 w-auto object-contain"
-                style={{ filter: 'brightness(1.2) contrast(1.1)' }}
-              />
+              StyleDrop
             </button>
           </div>
 
