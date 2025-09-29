@@ -5,6 +5,7 @@ import { saveAnalysisToDatabase } from './supabaseUtils';
 import { uploadFileToR2, compressImage } from './r2';
 import { extractGeminiJSON } from '../utils/geminiParser';
 import { makeUUID } from '../utils/uuid';
+import { R2_FOLDERS, MEDIA_TYPE_CATEGORIES } from '../constants';
 
 export interface GeminiAnalysisRequest {
   mediaData: string; // base64 encoded media
@@ -91,7 +92,7 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
         const ext = '.' + file.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${file.type}&ext=${ext}&folder=uploads`);
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${file.type}&ext=${ext}&folder=${R2_FOLDERS.UPLOADS}`);
         const signResult = await signResponse.json();
 
         if (!signResponse.ok || signResult.error) {
@@ -172,15 +173,15 @@ const fileToBase64 = (file: File): Promise<string> => {
 const getMediaTypeFromFile = (file: File): 'image' | 'video' | 'audio' => {
   const mimeType = file.type.toLowerCase();
   
-  if (mimeType.startsWith('image/')) {
-    return 'image';
-  } else if (mimeType.startsWith('video/')) {
-    return 'video';
-  } else if (mimeType.startsWith('audio/')) {
-    return 'audio';
+  if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.IMAGE}/`)) {
+    return MEDIA_TYPE_CATEGORIES.IMAGE;
+  } else if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.VIDEO}/`)) {
+    return MEDIA_TYPE_CATEGORIES.VIDEO;
+  } else if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.AUDIO}/`)) {
+    return MEDIA_TYPE_CATEGORIES.AUDIO;
   }
   
-  return 'image';
+  return MEDIA_TYPE_CATEGORIES.IMAGE;
 };
 
 const parseAnalysisResponse = (response: any): AnalysisResult => {

@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { addBreadcrumb, captureError } from './sentry';
 import { makeUUID } from '../utils/uuid';
+import { R2_FOLDERS, FILE_SIZE_LIMITS, DEFAULTS } from '../constants';
 
 // R2 client configuration
 export const r2Client = new S3Client({
@@ -28,9 +29,13 @@ export interface UploadRequest {
 // Generate a presigned URL for uploading to R2
 export const getPresignedUploadUrl = async (request: UploadRequest): Promise<PresignedUploadResponse> => {
   try {
-    addBreadcrumb('Generating presigned upload URL', 'r2', request);
+    addBreadcrumb('Generating presigned upload URL', 'r2', { 
+      contentType: request.contentType,
+      ext: request.ext,
+      folder: request.folder || R2_FOLDERS.UPLOADS
+    });
 
-    const key = `${request.folder || 'uploads'}/${makeUUID()}${request.ext}`;
+    const key = `${request.folder || R2_FOLDERS.UPLOADS}/${makeUUID()}${request.ext}`;
     const bucketName = import.meta.env.VITE_R2_BUCKET_NAME;
     const publicBaseUrl = import.meta.env.VITE_R2_PUBLIC_URL;
 
@@ -49,7 +54,7 @@ export const getPresignedUploadUrl = async (request: UploadRequest): Promise<Pre
       ACL: "public-read",
     });
 
-    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: 300 }); // 5 minutes
+    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: DEFAULTS.PRESIGNED_URL_EXPIRY_SECONDS });
     const publicUrl = `${publicBaseUrl}${key}`;
 
     addBreadcrumb('Presigned URL generated successfully', 'r2', { key, publicUrl });
@@ -143,7 +148,7 @@ export const deleteFileFromR2 = async (key: string): Promise<void> => {
 };
 
 // Compress image client-side before upload
-export const compressImage = (file: File, maxSizeMB: number = 2): Promise<File> => {
+export const compressImage = (file: File, maxSizeMB: number = FILE_SIZE_LIMITS.MAX_COMPRESSION_SIZE_MB): Promise<File> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');

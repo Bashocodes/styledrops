@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { addBreadcrumb } from './sentry';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
@@ -12,7 +13,7 @@ const isSupabaseConfigured = supabaseUrl &&
   supabaseAnonKey.length > 20;
 
 if (!isSupabaseConfigured) {
-  console.warn('Supabase environment variables not configured properly:', {
+  addBreadcrumb('Supabase configuration check failed', 'config', {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     urlIsPlaceholder: supabaseUrl === 'your_supabase_url_here',
@@ -20,6 +21,8 @@ if (!isSupabaseConfigured) {
     urlFormat: supabaseUrl?.startsWith('https://') ? 'valid' : 'invalid',
     keyLength: supabaseAnonKey?.length || 0
   });
+  
+  console.warn('Supabase environment variables not configured properly. Check environment setup.');
 }
 
 // Create and export the Supabase client
