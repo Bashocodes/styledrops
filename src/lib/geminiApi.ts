@@ -102,11 +102,31 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
         const ext = '.' + file.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${file.type}&ext=${ext}&folder=${R2_FOLDERS.UPLOADS}`);
-        const signResult = await signResponse.json();
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${encodeURIComponent(file.type)}&ext=${encodeURIComponent(ext)}&folder=${encodeURIComponent(R2_FOLDERS.UPLOADS)}`);
+        
+        // Check if response is OK and contains JSON
+        if (!signResponse.ok) {
+          const errorText = await signResponse.text();
+          if (errorText.startsWith('<!doctype') || errorText.startsWith('<!DOCTYPE')) {
+            throw new Error('Netlify function not found or misconfigured. Please check that the r2-sign function is deployed and environment variables are set.');
+          }
+          throw new Error(`Failed to get presigned URL: ${signResponse.status} ${signResponse.statusText}`);
+        }
+        
+        const responseText = await signResponse.text();
+        if (responseText.startsWith('<!doctype') || responseText.startsWith('<!DOCTYPE')) {
+          throw new Error('Netlify function returned HTML instead of JSON. Please check that the r2-sign function is deployed and environment variables are set.');
+        }
+        
+        let signResult;
+        try {
+          signResult = JSON.parse(responseText);
+        } catch (parseError) {
+          throw new Error(`Invalid JSON response from Netlify function: ${responseText.substring(0, 100)}...`);
+        }
 
-        if (!signResponse.ok || signResult.error) {
-          throw new Error(signResult.error || 'Failed to get presigned URL from Netlify Function');
+        if (signResult.error) {
+          throw new Error(signResult.error);
         }
 
         // Compress image if needed
