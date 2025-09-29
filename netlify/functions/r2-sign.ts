@@ -1,7 +1,7 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Handler } from "@netlify/functions";
-
+import { R2_FOLDERS, ALLOWED_MEDIA_TYPES, DEFAULTS } from "../../src/constants/index";
 // Import constants (Note: In Node.js environment, we need to define these locally or import from a shared location)
 const R2_FOLDERS = {
   UPLOADS: 'uploads',
@@ -33,16 +33,6 @@ const makeUUID = (): string => {
     return v.toString(16);
   });
 };
-
-// Initialize R2 client using environment variables from Netlify
-const r2Client = new S3Client({
-  region: "auto",
-  endpoint: process.env.R2_ENDPOINT,
-  credentials: {
-    accessKeyId: process.env.R2_ACCESS_KEY!,
-    secretAccessKey: process.env.R2_SECRET_KEY!,
-  },
-});
 
 interface R2SignRequest {
   contentType: string;
@@ -78,6 +68,39 @@ export const handler: Handler = async (event) => {
   }
 
   try {
+    // Validate all required environment variables first
+    const requiredEnvVars = {
+      R2_ACCESS_KEY: process.env.R2_ACCESS_KEY,
+      R2_SECRET_KEY: process.env.R2_SECRET_KEY,
+      R2_ENDPOINT: process.env.R2_ENDPOINT,
+      R2_BUCKET_NAME: process.env.R2_BUCKET_NAME,
+      R2_PUBLIC_URL: process.env.R2_PUBLIC_URL,
+    };
+
+    const missingVars = Object.entries(requiredEnvVars)
+      .filter(([_, value]) => !value)
+      .map(([key, _]) => key);
+
+    if (missingVars.length > 0) {
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ 
+          error: `Missing required environment variables: ${missingVars.join(', ')}. Please configure these in your Netlify dashboard.` 
+        }),
+      };
+    }
+
+    // Initialize R2 client only after environment validation
+    const r2Client = new S3Client({
+      region: "auto",
+      endpoint: requiredEnvVars.R2_ENDPOINT,
+      credentials: {
+        accessKeyId: requiredEnvVars.R2_ACCESS_KEY!,
+        secretAccessKey: requiredEnvVars.R2_SECRET_KEY!,
+      },
+    });
+
     const { contentType, ext, folder } = event.queryStringParameters as R2SignRequest;
 
     if (!contentType || !ext) {
@@ -98,12 +121,8 @@ export const handler: Handler = async (event) => {
     }
 
     const key = `${folder || R2_FOLDERS.UPLOADS}/${makeUUID()}${ext}`;
-    const bucketName = process.env.R2_BUCKET_NAME;
-    const publicBaseUrl = process.env.R2_PUBLIC_URL;
-
-    if (!bucketName || !publicBaseUrl) {
-      throw new Error('R2 environment variables not configured in Netlify');
-    }
+    const bucketName = requiredEnvVars.R2_BUCKET_NAME;
+    const publicBaseUrl = requiredEnvVars.R2_PUBLIC_URL;
 
     const command = new PutObjectCommand({
       Bucket: bucketName,
