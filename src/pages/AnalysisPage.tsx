@@ -258,10 +258,30 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           
           // Get presigned URL from Netlify Function for thumbnail
           const thumbnailSignResponse = await fetch(`/.netlify/functions/r2-sign?contentType=image/jpeg&ext=${thumbnailExt}&folder=${R2_FOLDERS.THUMBNAILS}`);
-          const thumbnailSignResult = await thumbnailSignResponse.json();
+          
+          // Check if response is OK and contains JSON
+          if (!thumbnailSignResponse.ok) {
+            const errorText = await thumbnailSignResponse.text();
+            if (errorText.startsWith('<!doctype') || errorText.startsWith('<!DOCTYPE')) {
+              throw new Error('Netlify function not found or misconfigured for thumbnail upload.');
+            }
+            throw new Error(`Failed to get presigned URL for thumbnail: ${thumbnailSignResponse.status} ${thumbnailSignResponse.statusText}`);
+          }
+          
+          const thumbnailResponseText = await thumbnailSignResponse.text();
+          if (thumbnailResponseText.startsWith('<!doctype') || thumbnailResponseText.startsWith('<!DOCTYPE')) {
+            throw new Error('Netlify function returned HTML instead of JSON for thumbnail upload.');
+          }
+          
+          let thumbnailSignResult;
+          try {
+            thumbnailSignResult = JSON.parse(thumbnailResponseText);
+          } catch (parseError) {
+            throw new Error(`Invalid JSON response from Netlify function for thumbnail: ${thumbnailResponseText.substring(0, 100)}...`);
+          }
 
-          if (!thumbnailSignResponse.ok || thumbnailSignResult.error) {
-            throw new Error(thumbnailSignResult.error || 'Failed to get presigned URL for thumbnail');
+          if (thumbnailSignResult.error) {
+            throw new Error(thumbnailSignResult.error);
           }
 
           await uploadFileToR2(thumbnailFile, thumbnailSignResult.uploadUrl);
