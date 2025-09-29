@@ -22,6 +22,16 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
       hasUserId: !!userId
     });
 
+    // Performance consideration: For very large files (>5MB), this base64 conversion
+    // can be memory-intensive and slow. Future optimization could involve uploading
+    // to R2 first and passing the URL to the Edge Function instead of base64 data.
+    if (file.size > 5 * 1024 * 1024) { // 5MB threshold
+      addBreadcrumb('Large file detected - base64 conversion may be slow', 'performance', {
+        fileSize: file.size,
+        fileName: file.name
+      });
+    }
+
     // Step 1: Convert file to base64 for Gemini analysis
     const base64Data = await fileToBase64(file);
     

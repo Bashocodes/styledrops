@@ -143,8 +143,9 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
             <img
               src={validatedUrl}
               alt={post.title}
-              className="w-full h-auto object-cover shadow-double-border"
+              className="w-full h-full object-cover shadow-double-border"
               loading="lazy"
+              decoding="async"
               onError={(e) => {
                 console.error('Failed to load image in style gallery:', {
                   postId: post.id,
@@ -177,7 +178,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               <div className="text-center">
                 <Type className="w-16 h-16 text-[#B8A082] mx-auto mb-2" />
                 <p className="text-[#B8A082] text-sm">Image unavailable</p>
-                <p className="text-[#B8A082]/60 text-xs mt-1">Media file could not be loaded</p>
+                <p className="text-[#B8A082]/60 text-xs mt-1">Loading failed</p>
               </div>
             </div>
           </div>
@@ -187,10 +188,10 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
           <div className="relative w-full">
             <video
               src={validatedUrl}
-              className="w-full h-auto object-cover shadow-double-border"
+              className="w-full h-full object-cover shadow-double-border"
               loading="lazy"
               muted
-              preload="none"
+              preload="metadata"
               onError={(e) => {
                 console.error('Failed to load video in style gallery:', {
                   postId: post.id,
@@ -225,7 +226,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               <div className="text-center">
                 <Play className="w-16 h-16 text-[#4da0ff] mx-auto mb-2" />
                 <p className="text-[#4da0ff] text-sm">Video unavailable</p>
-                <p className="text-[#4da0ff]/60 text-xs mt-1">Media file could not be loaded</p>
+                <p className="text-[#4da0ff]/60 text-xs mt-1">Loading failed</p>
               </div>
             </div>
           </div>

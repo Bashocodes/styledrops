@@ -438,6 +438,8 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                             src={previewUrl}
                             alt="Preview"
                             className="max-w-md max-h-64 rounded-lg shadow-lg"
+                            loading="lazy"
+                            decoding="async"
                           />
                         )}
                         {getMediaTypeFromFile(selectedFile) === 'video' && (
@@ -445,12 +447,13 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                             src={previewUrl}
                             controls
                             className="max-w-md max-h-64 rounded-lg shadow-lg"
+                            preload="metadata"
                             poster={thumbnailFile ? URL.createObjectURL(thumbnailFile) : undefined}
                           />
                         )}
                         {getMediaTypeFromFile(selectedFile) === 'audio' && (
                           <div className="bg-white/10 rounded-lg p-6 w-full max-w-md">
-                            <audio src={previewUrl} controls className="w-full" />
+                            <audio src={previewUrl} controls className="w-full" preload="metadata" />
                           </div>
                         )}
                       </div>

@@ -243,6 +243,8 @@ export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
                   src={previewUrl}
                   alt="Preview"
                   className="max-w-xs max-h-32 rounded-lg shadow-lg object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             )}
