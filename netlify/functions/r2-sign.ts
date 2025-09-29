@@ -2,6 +2,23 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { Handler } from "@netlify/functions";
 
+// Import constants (Note: In Node.js environment, we need to define these locally or import from a shared location)
+const R2_FOLDERS = {
+  UPLOADS: 'uploads',
+  POSTS: 'posts', 
+  THUMBNAILS: 'thumbnails'
+} as const;
+
+const ALLOWED_MEDIA_TYPES = [
+  'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+  'video/mp4', 'video/webm', 'video/ogg',
+  'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mpeg'
+] as const;
+
+const DEFAULTS = {
+  PRESIGNED_URL_EXPIRY_SECONDS: 300
+} as const;
+
 // UUID generation utility for Netlify functions
 const makeUUID = (): string => {
   // In Node.js environment, crypto should be available
@@ -71,13 +88,8 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const allowedTypes = [
-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-      'video/mp4', 'video/webm', 'video/ogg',
-      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mpeg'
-    ];
 
-    if (!allowedTypes.includes(contentType)) {
+    if (!ALLOWED_MEDIA_TYPES.includes(contentType as any)) {
       return {
         statusCode: 400,
         headers: corsHeaders,
@@ -85,7 +97,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const key = `${folder || 'uploads'}/${makeUUID()}${ext}`;
+    const key = `${folder || R2_FOLDERS.UPLOADS}/${makeUUID()}${ext}`;
     const bucketName = process.env.R2_BUCKET_NAME;
     const publicBaseUrl = process.env.R2_PUBLIC_URL;
 
@@ -100,7 +112,7 @@ export const handler: Handler = async (event) => {
       ACL: "public-read",
     });
 
-    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: 300 }); // 5 minutes
+    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: DEFAULTS.PRESIGNED_URL_EXPIRY_SECONDS });
     const publicUrl = `${publicBaseUrl}${key}`;
 
     return {

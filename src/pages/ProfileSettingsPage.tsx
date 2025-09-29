@@ -3,6 +3,7 @@ import { ArrowLeft, User, Save, Loader2, Check, X, AlertTriangle, Calendar } fro
 import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 import { updateUserProfileUsername, getUserProfile } from '../lib/supabaseUtils';
+import { DEFAULTS } from '../constants';
 
 interface ProfileSettingsPageProps {
   onBack: () => void;
@@ -59,12 +60,12 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onBack
       return 'Username is required';
     }
     
-    if (username.length < 3) {
-      return 'Username must be at least 3 characters';
+    if (username.length < DEFAULTS.USERNAME_MIN_LENGTH) {
+      return `Username must be at least ${DEFAULTS.USERNAME_MIN_LENGTH} characters`;
     }
     
-    if (username.length > 20) {
-      return 'Username must be less than 20 characters';
+    if (username.length > DEFAULTS.USERNAME_MAX_LENGTH) {
+      return `Username must be less than ${DEFAULTS.USERNAME_MAX_LENGTH} characters`;
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
@@ -77,17 +78,17 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onBack
   const canChangeUsername = (): boolean => {
     if (!lastUsernameChange) return true;
     
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const cooldownDate = new Date();
+    cooldownDate.setDate(cooldownDate.getDate() - DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS);
     
-    return lastUsernameChange <= thirtyDaysAgo;
+    return lastUsernameChange <= cooldownDate;
   };
 
   const getDaysUntilUsernameChange = (): number => {
     if (!lastUsernameChange) return 0;
     
     const thirtyDaysFromLastChange = new Date(lastUsernameChange);
-    thirtyDaysFromLastChange.setDate(thirtyDaysFromLastChange.getDate() + 30);
+    thirtyDaysFromLastChange.setDate(thirtyDaysFromLastChange.getDate() + DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS);
     
     const now = new Date();
     const diffTime = thirtyDaysFromLastChange.getTime() - now.getTime();
@@ -122,7 +123,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onBack
     // Check if user can change username
     if (!canChangeUsername()) {
       const daysRemaining = getDaysUntilUsernameChange();
-      setError(`You can only change your username once every 30 days. Please wait ${daysRemaining} more days.`);
+      setError(`You can only change your username once every ${DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS} days. Please wait ${daysRemaining} more days.`);
       return;
     }
 
@@ -258,7 +259,7 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onBack
                     <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
                       <p className="text-orange-200 text-sm">
-                        You can only change your username once every 30 days.
+                        You can only change your username once every {DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS} days.
                       </p>
                       <p className="text-orange-300 text-xs mt-1">
                         Next change available in {getDaysUntilUsernameChange()} days.
@@ -270,9 +271,9 @@ export const ProfileSettingsPage: React.FC<ProfileSettingsPageProps> = ({ onBack
               
               {/* Username guidelines */}
               <div className="mt-2 text-xs text-gray-500">
-                <p>• 3-20 characters</p>
+                <p>• {DEFAULTS.USERNAME_MIN_LENGTH}-{DEFAULTS.USERNAME_MAX_LENGTH} characters</p>
                 <p>• Letters, numbers, and underscores only</p>
-                <p>• Can be changed once every 30 days</p>
+                <p>• Can be changed once every {DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS} days</p>
               </div>
             </div>
           </div>

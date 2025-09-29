@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Palette, Image, Video, Music } from 'lucide-react';
 import { getPostsByStyle, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
+import { DEFAULTS } from '../constants';
 
 interface StyleGalleryPageProps {
   styleName: string;
@@ -29,7 +30,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
       }
 
       const offset = reset ? 0 : posts.length;
-      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(styleName, sortOrder, 12, offset, selectedMediaType);
+      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(styleName, sortOrder, DEFAULTS.GALLERY_PAGE_SIZE, offset, selectedMediaType);
 
       if (reset) {
         setPosts(newPosts);
@@ -158,6 +159,14 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                 if (fallbackDiv) {
                   fallbackDiv.style.display = 'flex';
                 }
+                // Report media loading failure
+                captureError(new Error('Image failed to load in style gallery'), {
+                  context: 'StyleGalleryPage.renderMediaPreview',
+                  postId: post.id,
+                  mediaUrl: validatedUrl,
+                  originalUrl: post.media_url,
+                  styleName
+                });
               }}
             />
             {/* Fallback div for broken images */}
@@ -195,6 +204,14 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                 if (fallbackDiv) {
                   fallbackDiv.style.display = 'flex';
                 }
+                // Report media loading failure
+                captureError(new Error('Video failed to load in style gallery'), {
+                  context: 'StyleGalleryPage.renderMediaPreview',
+                  postId: post.id,
+                  mediaUrl: validatedUrl,
+                  originalUrl: post.media_url,
+                  styleName
+                });
               }}
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
