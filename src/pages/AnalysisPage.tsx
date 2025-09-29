@@ -6,7 +6,6 @@ import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 import { createPost, PostData, checkIfAnalysisIsPosted, deletePost } from '../lib/supabaseUtils';
 import { uploadFileToR2, extractKeyFromUrl } from '../lib/r2';
-import { R2_FOLDERS, MEDIA_TYPE_CATEGORIES } from '../constants';
 
 interface AnalysisPageProps {
   analysis?: AnalysisResult;
@@ -205,32 +204,11 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         const ext = '.' + selectedMediaFile.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=${R2_FOLDERS.POSTS}`);
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=posts`);
+        const signResult = await signResponse.json();
 
-        
-        // Check if response is OK and contains JSON
-        if (!signResponse.ok) {
-          const errorText = await signResponse.text();
-          if (errorText.startsWith('<!doctype') || errorText.startsWith('<!DOCTYPE')) {
-            throw new Error('Netlify function not found or misconfigured. Please check that the r2-sign function is deployed and environment variables are set.');
-          }
-          throw new Error(`Failed to get presigned URL: ${signResponse.status} ${signResponse.statusText}`);
-        }
-        
-        const responseText = await signResponse.text();
-        if (responseText.startsWith('<!doctype') || responseText.startsWith('<!DOCTYPE')) {
-          throw new Error('Netlify function returned HTML instead of JSON. Please check that the r2-sign function is deployed and environment variables are set.');
-        }
-        
-        let signResult;
-        try {
-          signResult = JSON.parse(responseText);
-        } catch (parseError) {
-          throw new Error(`Invalid JSON response from Netlify function: ${responseText.substring(0, 100)}...`);
-        }
-
-        if (signResult.error) {
-          throw new Error(signResult.error);
+        if (!signResponse.ok || signResult.error) {
+          throw new Error(signResult.error || 'Failed to get presigned URL from Netlify Function');
         }
 
         await uploadFileToR2(selectedMediaFile, signResult.uploadUrl);
@@ -257,31 +235,11 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           const thumbnailExt = '.jpg'; // Thumbnails are always JPEG
           
           // Get presigned URL from Netlify Function for thumbnail
-          const thumbnailSignResponse = await fetch(`/.netlify/functions/r2-sign?contentType=image/jpeg&ext=${thumbnailExt}&folder=${R2_FOLDERS.THUMBNAILS}`);
-          
-          // Check if response is OK and contains JSON
-          if (!thumbnailSignResponse.ok) {
-            const errorText = await thumbnailSignResponse.text();
-            if (errorText.startsWith('<!doctype') || errorText.startsWith('<!DOCTYPE')) {
-              throw new Error('Netlify function not found or misconfigured for thumbnail upload.');
-            }
-            throw new Error(`Failed to get presigned URL for thumbnail: ${thumbnailSignResponse.status} ${thumbnailSignResponse.statusText}`);
-          }
-          
-          const thumbnailResponseText = await thumbnailSignResponse.text();
-          if (thumbnailResponseText.startsWith('<!doctype') || thumbnailResponseText.startsWith('<!DOCTYPE')) {
-            throw new Error('Netlify function returned HTML instead of JSON for thumbnail upload.');
-          }
-          
-          let thumbnailSignResult;
-          try {
-            thumbnailSignResult = JSON.parse(thumbnailResponseText);
-          } catch (parseError) {
-            throw new Error(`Invalid JSON response from Netlify function for thumbnail: ${thumbnailResponseText.substring(0, 100)}...`);
-          }
+          const thumbnailSignResponse = await fetch(`/.netlify/functions/r2-sign?contentType=image/jpeg&ext=${thumbnailExt}&folder=thumbnails`);
+          const thumbnailSignResult = await thumbnailSignResponse.json();
 
-          if (thumbnailSignResult.error) {
-            throw new Error(thumbnailSignResult.error);
+          if (!thumbnailSignResponse.ok || thumbnailSignResult.error) {
+            throw new Error(thumbnailSignResult.error || 'Failed to get presigned URL for thumbnail');
           }
 
           await uploadFileToR2(thumbnailFile, thumbnailSignResult.uploadUrl);
@@ -428,14 +386,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
     onTextClick?.(text);
   };
 
-  const getMediaTypeFromFile = (file: File): 'image' | 'video' | 'audio' => {
-    const mimeType = file.type.toLowerCase();
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.IMAGE}/`)) return MEDIA_TYPE_CATEGORIES.IMAGE;
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.VIDEO}/`)) return MEDIA_TYPE_CATEGORIES.VIDEO;
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.AUDIO}/`)) return MEDIA_TYPE_CATEGORIES.AUDIO;
-    return MEDIA_TYPE_CATEGORIES.IMAGE;
-  };
-
   // NEW: Handle style code click to copy to clipboard
   const handleStyleCodeClick = async (code: string, index: number) => {
     try {
@@ -477,7 +427,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             alt={currentAnalysis.title}
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
-            decoding="async"
             onError={(e) => {
               console.error('Failed to load image from R2:', displayMediaUrl);
               const target = e.target as HTMLImageElement;
@@ -510,7 +459,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             controls
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
-            preload="metadata"
             style={{ maxHeight: '80vh' }}
             poster={thumbnailFile ? URL.createObjectURL(thumbnailFile) : undefined}
             onError={(e) => {
@@ -528,7 +476,6 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               src={displayMediaUrl}
               controls
               loading="lazy"
-              preload="metadata"
               className="w-full max-w-md"
               onError={(e) => {
                 console.error('Failed to load audio from R2:', displayMediaUrl);

@@ -5,7 +5,6 @@ import { saveAnalysisToDatabase } from './supabaseUtils';
 import { uploadFileToR2, compressImage } from './r2';
 import { extractGeminiJSON } from '../utils/geminiParser';
 import { makeUUID } from '../utils/uuid';
-import { R2_FOLDERS, MEDIA_TYPE_CATEGORIES } from '../constants';
 
 export interface GeminiAnalysisRequest {
   mediaData: string; // base64 encoded media
@@ -21,16 +20,6 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
       fileType: file.type,
       hasUserId: !!userId
     });
-
-    // Performance consideration: For very large files (>5MB), this base64 conversion
-    // can be memory-intensive and slow. Future optimization could involve uploading
-    // to R2 first and passing the URL to the Edge Function instead of base64 data.
-    if (file.size > 5 * 1024 * 1024) { // 5MB threshold
-      addBreadcrumb('Large file detected - base64 conversion may be slow', 'performance', {
-        fileSize: file.size,
-        fileName: file.name
-      });
-    }
 
     // Step 1: Convert file to base64 for Gemini analysis
     const base64Data = await fileToBase64(file);
@@ -102,31 +91,11 @@ export const callGeminiAnalysisFunction = async (file: File, userId?: string): P
         const ext = '.' + file.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${encodeURIComponent(file.type)}&ext=${encodeURIComponent(ext)}&folder=${encodeURIComponent(R2_FOLDERS.UPLOADS)}`);
-        
-        // Check if response is OK and contains JSON
-        if (!signResponse.ok) {
-          const errorText = await signResponse.text();
-          if (errorText.startsWith('<!doctype') || errorText.startsWith('<!DOCTYPE')) {
-            throw new Error('Netlify function not found or misconfigured. Please check that the r2-sign function is deployed and environment variables are set.');
-          }
-          throw new Error(`Failed to get presigned URL: ${signResponse.status} ${signResponse.statusText}`);
-        }
-        
-        const responseText = await signResponse.text();
-        if (responseText.startsWith('<!doctype') || responseText.startsWith('<!DOCTYPE')) {
-          throw new Error('Netlify function returned HTML instead of JSON. Please check that the r2-sign function is deployed and environment variables are set.');
-        }
-        
-        let signResult;
-        try {
-          signResult = JSON.parse(responseText);
-        } catch (parseError) {
-          throw new Error(`Invalid JSON response from Netlify function: ${responseText.substring(0, 100)}...`);
-        }
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${file.type}&ext=${ext}&folder=uploads`);
+        const signResult = await signResponse.json();
 
-        if (signResult.error) {
-          throw new Error(signResult.error);
+        if (!signResponse.ok || signResult.error) {
+          throw new Error(signResult.error || 'Failed to get presigned URL from Netlify Function');
         }
 
         // Compress image if needed
@@ -203,15 +172,15 @@ const fileToBase64 = (file: File): Promise<string> => {
 const getMediaTypeFromFile = (file: File): 'image' | 'video' | 'audio' => {
   const mimeType = file.type.toLowerCase();
   
-  if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.IMAGE}/`)) {
-    return MEDIA_TYPE_CATEGORIES.IMAGE;
-  } else if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.VIDEO}/`)) {
-    return MEDIA_TYPE_CATEGORIES.VIDEO;
-  } else if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.AUDIO}/`)) {
-    return MEDIA_TYPE_CATEGORIES.AUDIO;
+  if (mimeType.startsWith('image/')) {
+    return 'image';
+  } else if (mimeType.startsWith('video/')) {
+    return 'video';
+  } else if (mimeType.startsWith('audio/')) {
+    return 'audio';
   }
   
-  return MEDIA_TYPE_CATEGORIES.IMAGE;
+  return 'image';
 };
 
 const parseAnalysisResponse = (response: any): AnalysisResult => {

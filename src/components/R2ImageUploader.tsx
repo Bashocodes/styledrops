@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { Upload, Loader2, AlertCircle, FileImage, FileVideo, FileAudio, X, Check } from 'lucide-react';
 import { uploadFileToR2, compressImage } from '../lib/r2';
 import { addBreadcrumb, captureError } from '../lib/sentry';
-import { ALLOWED_MEDIA_TYPES, FILE_SIZE_LIMITS, R2_FOLDERS, API_ENDPOINTS } from '../constants';
 
 interface R2ImageUploaderProps {
   onUploadSuccess: (publicUrl: string, key: string) => void;
@@ -16,9 +15,9 @@ interface R2ImageUploaderProps {
 export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
   onUploadSuccess,
   onUploadError,
-  acceptedTypes = [...ALLOWED_MEDIA_TYPES],
-  maxSizeMB = FILE_SIZE_LIMITS.MAX_UPLOAD_SIZE_MB,
-  folder = R2_FOLDERS.UPLOADS,
+  acceptedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'],
+  maxSizeMB = 10,
+  folder = 'uploads',
   className = ''
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -58,27 +57,13 @@ export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
     try {
       // Validate file type
       if (!acceptedTypes.includes(file.type)) {
-        const errorMsg = `Please select a valid file type: ${acceptedTypes.join(', ')}`;
-        setError(errorMsg);
-        captureError(new Error(`Invalid file type: ${file.type}`), {
-          context: 'R2ImageUploader.handleFileSelection',
-          fileName: file.name,
-          fileType: file.type,
-          acceptedTypes
-        });
+        setError(`Please select a valid file type: ${acceptedTypes.join(', ')}`);
         return;
       }
 
       // Check file size
       if (file.size > maxSizeMB * 1024 * 1024) {
-        const errorMsg = `File size must be less than ${maxSizeMB}MB.`;
-        setError(errorMsg);
-        captureError(new Error(`File too large: ${file.size} bytes`), {
-          context: 'R2ImageUploader.handleFileSelection',
-          fileName: file.name,
-          fileSize: file.size,
-          maxSizeMB
-        });
+        setError(`File size must be less than ${maxSizeMB}MB.`);
         return;
       }
 
@@ -118,17 +103,13 @@ export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
       let fileToUpload = selectedFile;
       if (selectedFile.type.startsWith('image/')) {
         try {
-          fileToUpload = await compressImage(selectedFile, FILE_SIZE_LIMITS.MAX_COMPRESSION_SIZE_MB);
+          fileToUpload = await compressImage(selectedFile, 2);
           addBreadcrumb('Image compressed successfully', 'upload', {
             originalSize: selectedFile.size,
             compressedSize: fileToUpload.size
           });
         } catch (compressionError) {
           console.warn('Image compression failed, using original file:', compressionError);
-          captureError(compressionError as Error, { 
-            context: 'R2ImageUploader.compressImage',
-            fileName: selectedFile.name
-          });
           // Continue with original file if compression fails
         }
       }
@@ -137,7 +118,7 @@ export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
       const ext = '.' + selectedFile.name.split('.').pop()?.toLowerCase();
 
       // Get presigned URL from Netlify Function
-      const signResponse = await fetch(`${API_ENDPOINTS.NETLIFY_R2_SIGN}?contentType=${fileToUpload.type}&ext=${ext}&folder=${folder}`);
+      const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${fileToUpload.type}&ext=${ext}&folder=${folder}`);
       const signResult = await signResponse.json();
 
       if (!signResponse.ok || signResult.error) {
@@ -243,8 +224,6 @@ export const R2ImageUploader: React.FC<R2ImageUploaderProps> = ({
                   src={previewUrl}
                   alt="Preview"
                   className="max-w-xs max-h-32 rounded-lg shadow-lg object-cover"
-                  loading="lazy"
-                  decoding="async"
                 />
               </div>
             )}

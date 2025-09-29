@@ -6,7 +6,6 @@ import { AnalysisContent } from '../components/AnalysisContent';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 import { useAuth } from '../hooks/useAuth';
 import { generateThumbnailFile } from '../utils/videoThumbnail';
-import { ALLOWED_MEDIA_TYPES, FILE_SIZE_LIMITS, MEDIA_TYPE_CATEGORIES } from '../constants';
 
 interface DecodePageProps {
   onDecodeSuccess: (
@@ -114,28 +113,20 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
 
   const handleFileSelection = async (file: File) => {
     // Validate file type
+    const validTypes = [
+      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
+      'video/mp4', 'video/webm', 'video/ogg',
+      'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/mpeg'
+    ];
 
-    if (!ALLOWED_MEDIA_TYPES.includes(file.type as any)) {
-      const errorMsg = 'Please select a valid image, video, or audio file.';
-      setError(errorMsg);
-      captureError(new Error(`Invalid file type: ${file.type}`), { 
-        context: 'handleFileSelection',
-        fileName: file.name,
-        fileType: file.type
-      });
+    if (!validTypes.includes(file.type)) {
+      setError('Please select a valid image, video, or audio file.');
       return;
     }
 
     // Check file size (max 10MB)
-    if (file.size > FILE_SIZE_LIMITS.MAX_UPLOAD_SIZE_MB * 1024 * 1024) {
-      const errorMsg = `File size must be less than ${FILE_SIZE_LIMITS.MAX_UPLOAD_SIZE_MB}MB.`;
-      setError(errorMsg);
-      captureError(new Error(`File too large: ${file.size} bytes`), {
-        context: 'handleFileSelection',
-        fileName: file.name,
-        fileSize: file.size,
-        maxSize: FILE_SIZE_LIMITS.MAX_UPLOAD_SIZE_MB * 1024 * 1024
-      });
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size must be less than 10MB.');
       return;
     }
 
@@ -147,7 +138,7 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
     setPreviewUrl(url);
 
     // NEW: Generate thumbnail for video files
-    if (getMediaTypeFromFile(file) === MEDIA_TYPE_CATEGORIES.VIDEO) {
+    if (getMediaTypeFromFile(file) === 'video') {
       try {
         addBreadcrumb('Generating video thumbnail', 'ui', { fileName: file.name });
         const thumbnail = await generateThumbnailFile(file, {
@@ -228,10 +219,10 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
 
   const getMediaTypeFromFile = (file: File): 'image' | 'video' | 'audio' => {
     const mimeType = file.type.toLowerCase();
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.IMAGE}/`)) return MEDIA_TYPE_CATEGORIES.IMAGE;
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.VIDEO}/`)) return MEDIA_TYPE_CATEGORIES.VIDEO;
-    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.AUDIO}/`)) return MEDIA_TYPE_CATEGORIES.AUDIO;
-    return MEDIA_TYPE_CATEGORIES.IMAGE;
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType.startsWith('video/')) return 'video';
+    if (mimeType.startsWith('audio/')) return 'audio';
+    return 'image';
   };
 
   const getFileIcon = (file: File) => {
@@ -438,8 +429,6 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                             src={previewUrl}
                             alt="Preview"
                             className="max-w-md max-h-64 rounded-lg shadow-lg"
-                            loading="lazy"
-                            decoding="async"
                           />
                         )}
                         {getMediaTypeFromFile(selectedFile) === 'video' && (
@@ -447,13 +436,12 @@ export const DecodePage: React.FC<DecodePageProps> = ({ onDecodeSuccess, onBack 
                             src={previewUrl}
                             controls
                             className="max-w-md max-h-64 rounded-lg shadow-lg"
-                            preload="metadata"
                             poster={thumbnailFile ? URL.createObjectURL(thumbnailFile) : undefined}
                           />
                         )}
                         {getMediaTypeFromFile(selectedFile) === 'audio' && (
                           <div className="bg-white/10 rounded-lg p-6 w-full max-w-md">
-                            <audio src={previewUrl} controls className="w-full" preload="metadata" />
+                            <audio src={previewUrl} controls className="w-full" />
                           </div>
                         )}
                       </div>

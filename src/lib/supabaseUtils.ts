@@ -2,7 +2,6 @@ import { supabase } from './supabase';
 import { captureError, addBreadcrumb } from './sentry';
 import { AnalysisResult } from '../constants/modules';
 import { deleteFileFromR2, extractKeyFromUrl } from './r2';
-import { DEFAULTS } from '../constants';
 
 export interface BookmarkedAnalysis {
   id: string;
@@ -332,11 +331,11 @@ export const updateUserProfileUsername = async (userId: string, newUsername: str
     if (currentProfile.last_username_change_at) {
       const lastChange = new Date(currentProfile.last_username_change_at);
       const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       if (lastChange > thirtyDaysAgo) {
-        const daysRemaining = Math.ceil((lastChange.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24)); 
-        throw new Error(`You can only change your username once every ${DEFAULTS.USERNAME_CHANGE_COOLDOWN_DAYS} days. Please wait ${daysRemaining} more days.`);
+        const daysRemaining = Math.ceil((lastChange.getTime() - thirtyDaysAgo.getTime()) / (1000 * 60 * 60 * 24));
+        throw new Error(`You can only change your username once every 30 days. Please wait ${daysRemaining} more days.`);
       }
     }
 
@@ -387,8 +386,8 @@ export const getUserProfile = async (userId: string) => {
 };
 
 export const getPosts = async (
-  sortOrder: 'new' | 'top' | 'hot' = 'new', 
-  limit: number = DEFAULTS.GALLERY_PAGE_SIZE,
+  sortOrder: 'new' | 'top' | 'hot' = 'new',
+  limit: number = 12,
   offset: number = 0,
   mediaType: 'image' | 'video' | 'audio' = 'image',
   searchQuery?: string
@@ -482,8 +481,8 @@ export const getPosts = async (
 
 export const getPostsByUserId = async (
   userId: string,
-  sortOrder: 'new' | 'top' | 'hot' = 'new', 
-  limit: number = DEFAULTS.GALLERY_PAGE_SIZE,
+  sortOrder: 'new' | 'top' | 'hot' = 'new',
+  limit: number = 12,
   offset: number = 0,
   mediaType: 'image' | 'video' | 'audio' = 'image',
   searchQuery?: string
@@ -560,8 +559,8 @@ export const getPostsByUserId = async (
 
 export const getPostsByStyle = async (
   style: string,
-  sortOrder: 'new' | 'top' | 'hot' = 'new', 
-  limit: number = DEFAULTS.GALLERY_PAGE_SIZE,
+  sortOrder: 'new' | 'top' | 'hot' = 'new',
+  limit: number = 12,
   offset: number = 0,
   mediaType: 'image' | 'video' | 'audio' = 'image',
   searchQuery?: string
