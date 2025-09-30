@@ -398,7 +398,7 @@ export const getPosts = async (
 
     let query = supabase
       .from('posts')
-      .select('*')
+      .select('id, title, media_url, media_type, thumbnail_url, username, style, likes_count, created_at, user_id')
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
 
@@ -493,7 +493,7 @@ export const getPostsByUserId = async (
 
     let query = supabase
       .from('posts')
-      .select('*')
+      .select('id, title, media_url, media_type, thumbnail_url, username, style, likes_count, created_at, user_id')
       .eq('user_id', userId)
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
@@ -577,7 +577,7 @@ export const getPostsByStyle = async (
 
     let query = supabase
       .from('posts')
-      .select('*')
+      .select('id, title, media_url, media_type, thumbnail_url, username, style, likes_count, created_at, user_id')
       .eq('style', style)
       .eq('media_type', mediaType)
       .range(offset, offset + limit);

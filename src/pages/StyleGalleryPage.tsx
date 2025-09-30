@@ -3,6 +3,7 @@ import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Palette, Imag
 import { getPostsByStyle, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 import { DEFAULTS } from '../constants';
+import { GallerySkeletonLoader, GalleryLoadMoreSkeleton } from '../components/GallerySkeletonLoader';
 
 interface StyleGalleryPageProps {
   styleName: string;
@@ -302,12 +303,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
         {/* Content */}
         <div className="p-4">
           {loading && posts.length === 0 ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-center">
-                <Loader2 className="w-8 h-8 text-[#B8A082] animate-spin mx-auto mb-4" />
-                <p className="text-white/70 text-lg">Loading {styleName} creations...</p>
-              </div>
-            </div>
+            <GallerySkeletonLoader count={12} />
           ) : error ? (
             <div className="flex items-center justify-center h-64">
               <div className="text-center">
@@ -379,10 +375,13 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                 ))}
               </div>
 
+              {/* Load More Skeleton */}
+              {loadingMore && <GalleryLoadMoreSkeleton />}
+
               {/* Infinite Scroll Trigger */}
               <div ref={loadMoreRef} className="flex items-center justify-center py-8">
                 {loadingMore ? (
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 opacity-0">
                     <Loader2 className="w-5 h-5 text-[#B8A082] animate-spin" />
                     <span className="text-white/50 text-sm">Loading more...</span>
                   </div>
