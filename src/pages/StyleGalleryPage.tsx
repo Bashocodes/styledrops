@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2, AlertTriangle, ChevronDown, Play, Volume2, Type, Palette, Image, Video, Music } from 'lucide-react';
 import { getPostsByStyle, Post, validateAndFixMediaUrl } from '../lib/supabaseUtils';
 import { addBreadcrumb, captureError } from '../lib/sentry';
+import { DEFAULTS } from '../constants';
 
 interface StyleGalleryPageProps {
   styleName: string;
@@ -29,7 +30,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
       }
 
       const offset = reset ? 0 : posts.length;
-      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(styleName, sortOrder, 12, offset, selectedMediaType);
+      const { posts: newPosts, hasMore: moreAvailable } = await getPostsByStyle(styleName, sortOrder, DEFAULTS.GALLERY_PAGE_SIZE, offset, selectedMediaType);
 
       if (reset) {
         setPosts(newPosts);
@@ -142,8 +143,9 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
             <img
               src={validatedUrl}
               alt={post.title}
-              className="w-full h-auto object-cover shadow-double-border"
+              className="w-full h-full object-cover shadow-double-border"
               loading="lazy"
+              decoding="async"
               onError={(e) => {
                 console.error('Failed to load image in style gallery:', {
                   postId: post.id,
@@ -158,6 +160,14 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                 if (fallbackDiv) {
                   fallbackDiv.style.display = 'flex';
                 }
+                // Report media loading failure
+                captureError(new Error('Image failed to load in style gallery'), {
+                  context: 'StyleGalleryPage.renderMediaPreview',
+                  postId: post.id,
+                  mediaUrl: validatedUrl,
+                  originalUrl: post.media_url,
+                  styleName
+                });
               }}
             />
             {/* Fallback div for broken images */}
@@ -168,7 +178,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               <div className="text-center">
                 <Type className="w-16 h-16 text-[#B8A082] mx-auto mb-2" />
                 <p className="text-[#B8A082] text-sm">Image unavailable</p>
-                <p className="text-[#B8A082]/60 text-xs mt-1">Media file could not be loaded</p>
+                <p className="text-[#B8A082]/60 text-xs mt-1">Loading failed</p>
               </div>
             </div>
           </div>
@@ -178,10 +188,10 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
           <div className="relative w-full">
             <video
               src={validatedUrl}
-              className="w-full h-auto object-cover shadow-double-border"
+              className="w-full h-full object-cover shadow-double-border"
               loading="lazy"
               muted
-              preload="none"
+              preload="metadata"
               onError={(e) => {
                 console.error('Failed to load video in style gallery:', {
                   postId: post.id,
@@ -195,6 +205,14 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
                 if (fallbackDiv) {
                   fallbackDiv.style.display = 'flex';
                 }
+                // Report media loading failure
+                captureError(new Error('Video failed to load in style gallery'), {
+                  context: 'StyleGalleryPage.renderMediaPreview',
+                  postId: post.id,
+                  mediaUrl: validatedUrl,
+                  originalUrl: post.media_url,
+                  styleName
+                });
               }}
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
@@ -208,7 +226,7 @@ export const StyleGalleryPage: React.FC<StyleGalleryPageProps> = ({ styleName, o
               <div className="text-center">
                 <Play className="w-16 h-16 text-[#4da0ff] mx-auto mb-2" />
                 <p className="text-[#4da0ff] text-sm">Video unavailable</p>
-                <p className="text-[#4da0ff]/60 text-xs mt-1">Media file could not be loaded</p>
+                <p className="text-[#4da0ff]/60 text-xs mt-1">Loading failed</p>
               </div>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { addBreadcrumb, captureError } from '../lib/sentry';
 import { createPost, PostData, checkIfAnalysisIsPosted, deletePost } from '../lib/supabaseUtils';
 import { uploadFileToR2, extractKeyFromUrl } from '../lib/r2';
+import { R2_FOLDERS, MEDIA_TYPE_CATEGORIES } from '../constants';
 
 interface AnalysisPageProps {
   analysis?: AnalysisResult;
@@ -204,7 +205,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
         const ext = '.' + selectedMediaFile.name.split('.').pop()?.toLowerCase();
         
         // Get presigned URL from Netlify Function
-        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=posts`);
+        const signResponse = await fetch(`/.netlify/functions/r2-sign?contentType=${selectedMediaFile.type}&ext=${ext}&folder=${R2_FOLDERS.POSTS}`);
         const signResult = await signResponse.json();
 
         if (!signResponse.ok || signResult.error) {
@@ -235,7 +236,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
           const thumbnailExt = '.jpg'; // Thumbnails are always JPEG
           
           // Get presigned URL from Netlify Function for thumbnail
-          const thumbnailSignResponse = await fetch(`/.netlify/functions/r2-sign?contentType=image/jpeg&ext=${thumbnailExt}&folder=thumbnails`);
+          const thumbnailSignResponse = await fetch(`/.netlify/functions/r2-sign?contentType=image/jpeg&ext=${thumbnailExt}&folder=${R2_FOLDERS.THUMBNAILS}`);
           const thumbnailSignResult = await thumbnailSignResponse.json();
 
           if (!thumbnailSignResponse.ok || thumbnailSignResult.error) {
@@ -386,6 +387,14 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
     onTextClick?.(text);
   };
 
+  const getMediaTypeFromFile = (file: File): 'image' | 'video' | 'audio' => {
+    const mimeType = file.type.toLowerCase();
+    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.IMAGE}/`)) return MEDIA_TYPE_CATEGORIES.IMAGE;
+    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.VIDEO}/`)) return MEDIA_TYPE_CATEGORIES.VIDEO;
+    if (mimeType.startsWith(`${MEDIA_TYPE_CATEGORIES.AUDIO}/`)) return MEDIA_TYPE_CATEGORIES.AUDIO;
+    return MEDIA_TYPE_CATEGORIES.IMAGE;
+  };
+
   // NEW: Handle style code click to copy to clipboard
   const handleStyleCodeClick = async (code: string, index: number) => {
     try {
@@ -427,6 +436,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             alt={currentAnalysis.title}
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
+            decoding="async"
             onError={(e) => {
               console.error('Failed to load image from R2:', displayMediaUrl);
               const target = e.target as HTMLImageElement;
@@ -459,6 +469,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
             controls
             className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
             loading="lazy"
+            preload="metadata"
             style={{ maxHeight: '80vh' }}
             poster={thumbnailFile ? URL.createObjectURL(thumbnailFile) : undefined}
             onError={(e) => {
@@ -476,6 +487,7 @@ export const AnalysisPage: React.FC<AnalysisPageProps> = ({
               src={displayMediaUrl}
               controls
               loading="lazy"
+              preload="metadata"
               className="w-full max-w-md"
               onError={(e) => {
                 console.error('Failed to load audio from R2:', displayMediaUrl);
