@@ -398,7 +398,7 @@ export const getPosts = async (
 
     let query = supabase
       .from('posts')
-      .select('id, title, media_url, media_type, thumbnail_url, username, style, likes_count, created_at, user_id')
+      .select('id, title, media_url, media_type, thumbnail_url, username, style, likes_count, created_at, user_id, analysis_data')
       .eq('media_type', mediaType)
       .range(offset, offset + limit);
 
